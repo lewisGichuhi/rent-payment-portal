@@ -6,6 +6,10 @@
     <title>Tenant Portal - Rent Payment</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Three.js for ColorBends background -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -18,11 +22,50 @@
             padding: 20px;
             color: #f8fafc;
             line-height: 1.6;
+            overflow: hidden;
         }
-        .container { width: 100%; max-width: 460px; }
+
+        /* ColorBends Background Container */
+        #bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: #0f172a;
+        }
+
+        #bg-container canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 460px;
+            position: relative;
+            z-index: 1;
+            max-height: 98vh;
+            overflow-y: auto;
+        }
+
+        .container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .container::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
         .card {
             background: rgba(30, 41, 59, 0.85);
             backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             padding: 32px 28px;
             border-radius: 24px;
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -618,6 +661,278 @@
 </head>
 <body>
 
+<!-- ============================================================
+     COLORBENDS BACKGROUND
+     ============================================================ -->
+<div id="bg-container"></div>
+
+<script>
+// ============================================================
+// COLORBENDS BACKGROUND - Three.js Implementation
+// ============================================================
+(function() {
+    const container = document.getElementById('bg-container');
+    
+    // Scene setup
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({
+        antialias: false,
+        powerPreference: 'high-performance',
+        alpha: true
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0x0f172a, 1);
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
+    renderer.domElement.style.display = 'block';
+    container.appendChild(renderer.domElement);
+    
+    // Resize handler
+    function resize() {
+        const w = container.clientWidth || window.innerWidth;
+        const h = container.clientHeight || window.innerHeight;
+        renderer.setSize(w, h, false);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    
+    // ============================================================
+    // COLORBENDS SHADER
+    // ============================================================
+    const MAX_COLORS = 8;
+    
+    const vertexShader = `
+        varying vec2 vUv;
+        void main() {
+            vUv = uv;
+            gl_Position = vec4(position, 1.0);
+        }
+    `;
+    
+    const fragmentShader = `
+        #define MAX_COLORS ${MAX_COLORS}
+        uniform vec2 uCanvas;
+        uniform float uTime;
+        uniform float uSpeed;
+        uniform vec2 uRot;
+        uniform int uColorCount;
+        uniform vec3 uColors[MAX_COLORS];
+        uniform float uScale;
+        uniform float uFrequency;
+        uniform float uWarpStrength;
+        uniform vec2 uPointer;
+        uniform float uMouseInfluence;
+        uniform float uParallax;
+        uniform float uNoise;
+        uniform int uIterations;
+        uniform float uIntensity;
+        uniform float uBandWidth;
+        varying vec2 vUv;
+
+        void main() {
+            float t = uTime * uSpeed;
+            vec2 p = vUv * 2.0 - 1.0;
+            p += uPointer * uParallax * 0.1;
+            vec2 rp = vec2(p.x * uRot.x - p.y * uRot.y, p.x * uRot.y + p.y * uRot.x);
+            vec2 q = vec2(rp.x * (uCanvas.x / uCanvas.y), rp.y);
+            q /= max(uScale, 0.0001);
+            q /= 0.5 + 0.2 * dot(q, q);
+            q += 0.2 * cos(t) - 7.56;
+            vec2 toward = (uPointer - rp);
+            q += toward * uMouseInfluence * 0.2;
+
+            for (int j = 0; j < 5; j++) {
+                if (j >= uIterations - 1) break;
+                vec2 rr = sin(1.5 * (q.yx * uFrequency) + 2.0 * cos(q * uFrequency));
+                q += (rr - q) * 0.15;
+            }
+
+            vec3 col = vec3(0.0);
+            float a = 1.0;
+
+            if (uColorCount > 0) {
+                vec2 s = q;
+                vec3 sumCol = vec3(0.0);
+                float cover = 0.0;
+                for (int i = 0; i < MAX_COLORS; ++i) {
+                    if (i >= uColorCount) break;
+                    s -= 0.01;
+                    vec2 r = sin(1.5 * (s.yx * uFrequency) + 2.0 * cos(s * uFrequency));
+                    float m0 = length(r + sin(5.0 * r.y * uFrequency - 3.0 * t + float(i)) / 4.0);
+                    float kBelow = clamp(uWarpStrength, 0.0, 1.0);
+                    float kMix = pow(kBelow, 0.3);
+                    float gain = 1.0 + max(uWarpStrength - 1.0, 0.0);
+                    vec2 disp = (r - s) * kBelow;
+                    vec2 warped = s + disp * gain;
+                    float m1 = length(warped + sin(5.0 * warped.y * uFrequency - 3.0 * t + float(i)) / 4.0);
+                    float m = mix(m0, m1, kMix);
+                    float w = 1.0 - exp(-uBandWidth / exp(uBandWidth * m));
+                    sumCol += uColors[i] * w;
+                    cover = max(cover, w);
+                }
+                col = clamp(sumCol, 0.0, 1.0);
+            } else {
+                vec2 s = q;
+                for (int k = 0; k < 3; ++k) {
+                    s -= 0.01;
+                    vec2 r = sin(1.5 * (s.yx * uFrequency) + 2.0 * cos(s * uFrequency));
+                    float m0 = length(r + sin(5.0 * r.y * uFrequency - 3.0 * t + float(k)) / 4.0);
+                    float kBelow = clamp(uWarpStrength, 0.0, 1.0);
+                    float kMix = pow(kBelow, 0.3);
+                    float gain = 1.0 + max(uWarpStrength - 1.0, 0.0);
+                    vec2 disp = (r - s) * kBelow;
+                    vec2 warped = s + disp * gain;
+                    float m1 = length(warped + sin(5.0 * warped.y * uFrequency - 3.0 * t + float(k)) / 4.0);
+                    float m = mix(m0, m1, kMix);
+                    col[k] = 1.0 - exp(-uBandWidth / exp(uBandWidth * m));
+                }
+            }
+
+            col *= uIntensity;
+
+            if (uNoise > 0.0001) {
+                float n = fract(sin(dot(gl_FragCoord.xy + vec2(uTime), vec2(12.9898, 78.233))) * 43758.5453123);
+                col += (n - 0.5) * uNoise;
+                col = clamp(col, 0.0, 1.0);
+            }
+
+            gl_FragColor = vec4(col, 1.0);
+        }
+    `;
+    
+    // Colors: gradient from purple to blue to pink
+    const colors = [
+        new THREE.Color(0x8a5cff), // purple
+        new THREE.Color(0x6366f1), // indigo
+        new THREE.Color(0x3b82f6), // blue
+        new THREE.Color(0x06b6d4), // cyan
+        new THREE.Color(0x10b981), // green
+        new THREE.Color(0xf59e0b), // amber
+        new THREE.Color(0xf472b6)  // pink
+    ];
+    
+    const colorVecs = colors.map(c => c.clone());
+    while (colorVecs.length < MAX_COLORS) {
+        colorVecs.push(new THREE.Color(0, 0, 0));
+    }
+    const colorArray = colorVecs.map(c => new THREE.Vector3(c.r, c.g, c.b));
+    
+    // Uniforms
+    const uniforms = {
+        uCanvas: { value: new THREE.Vector2(1, 1) },
+        uTime: { value: 0 },
+        uSpeed: { value: 0.15 },
+        uRot: { value: new THREE.Vector2(1, 0) },
+        uColorCount: { value: colors.length },
+        uColors: { value: colorArray },
+        uScale: { value: 1.0 },
+        uFrequency: { value: 1.2 },
+        uWarpStrength: { value: 1.0 },
+        uPointer: { value: new THREE.Vector2(0, 0) },
+        uMouseInfluence: { value: 1.0 },
+        uParallax: { value: 0.5 },
+        uNoise: { value: 0.05 },
+        uIterations: { value: 2 },
+        uIntensity: { value: 1.5 },
+        uBandWidth: { value: 8.0 }
+    };
+    
+    const material = new THREE.ShaderMaterial({
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+        uniforms: uniforms,
+        transparent: false
+    });
+    
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+    
+    // Pointer tracking
+    const pointerTarget = new THREE.Vector2(0, 0);
+    const pointerCurrent = new THREE.Vector2(0, 0);
+    let pointerSmooth = 8;
+    
+    function onPointerMove(e) {
+        const rect = container.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / (rect.width || 1)) * 2 - 1;
+        const y = -(((e.clientY - rect.top) / (rect.height || 1)) * 2 - 1);
+        pointerTarget.set(x, y);
+    }
+    
+    container.addEventListener('pointermove', onPointerMove);
+    container.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        if (touch) {
+            const rect = container.getBoundingClientRect();
+            const x = ((touch.clientX - rect.left) / (rect.width || 1)) * 2 - 1;
+            const y = -(((touch.clientY - rect.top) / (rect.height || 1)) * 2 - 1);
+            pointerTarget.set(x, y);
+        }
+    }, { passive: true });
+    
+    // Animation loop
+    const clock = new THREE.Clock();
+    let rotationAngle = 0;
+    const rotationSpeed = 0.03;
+    
+    function animate() {
+        const dt = clock.getDelta();
+        const elapsed = clock.getElapsedTime();
+        
+        // Update time
+        uniforms.uTime.value = elapsed;
+        
+        // Auto-rotate
+        rotationAngle += rotationSpeed * dt;
+        const rad = rotationAngle;
+        uniforms.uRot.value.set(Math.cos(rad), Math.sin(rad));
+        
+        // Smooth pointer
+        const cur = pointerCurrent;
+        const tgt = pointerTarget;
+        const amt = Math.min(1, dt * pointerSmooth);
+        cur.lerp(tgt, amt);
+        uniforms.uPointer.value.copy(cur);
+        
+        // Update canvas size
+        const w = container.clientWidth || window.innerWidth;
+        const h = container.clientHeight || window.innerHeight;
+        uniforms.uCanvas.value.set(w, h);
+        
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+    }
+    
+    animate();
+    
+    // Handle resize
+    window.addEventListener('resize', () => {
+        const w = container.clientWidth || window.innerWidth;
+        const h = container.clientHeight || window.innerHeight;
+        renderer.setSize(w, h, false);
+        uniforms.uCanvas.value.set(w, h);
+    });
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        geometry.dispose();
+        material.dispose();
+        renderer.dispose();
+        renderer.forceContextLoss();
+        if (renderer.domElement && renderer.domElement.parentElement === container) {
+            container.removeChild(renderer.domElement);
+        }
+    });
+})();
+</script>
+
+<!-- ============================================================
+     TENANT PORTAL
+     ============================================================ -->
 <div class="container">
 
     <!-- LOGIN CARD -->
@@ -701,7 +1016,9 @@
             </div>
         </div>
 
-        <!-- PAYMENT SECTION -->
+        <!-- ============================================================
+             PAYMENT SECTION - COMPLETE WITH STK PUSH
+             ============================================================ -->
         <div style="margin-top:16px;">
 
             <div class="summary-box">
@@ -854,6 +1171,9 @@
     </div>
 </div>
 
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
 <script>
 // ============================================================
 // TENANT IMAGES
@@ -910,10 +1230,8 @@ function showPaymentLoading() {
     document.getElementById('timeoutState').style.display = 'none';
     overlay.classList.add('active');
     
-    // Start timer for timeout
     if (timeoutTimer) clearTimeout(timeoutTimer);
     timeoutTimer = setTimeout(() => {
-        // If still loading after 60 seconds, show timeout
         if (document.getElementById('loadingState').style.display !== 'none') {
             showPaymentTimeout();
         }
@@ -949,7 +1267,6 @@ function showPaymentTimeout() {
 function closePaymentOverlay() {
     const overlay = document.getElementById('paymentOverlay');
     overlay.classList.remove('active');
-    // Reset to loading state for next time
     document.getElementById('loadingState').style.display = 'block';
     document.getElementById('successState').style.display = 'none';
     document.getElementById('errorState').style.display = 'none';
@@ -993,7 +1310,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ============================================================
     let paymentListenerRef = null;
     let tenantListenerRef = null;
-    let paymentProcessed = false; // Track if payment was already handled
+    let paymentProcessed = false;
 
     function setupRealtimeListeners(unitId) {
         if (paymentListenerRef) {
@@ -1014,26 +1331,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Listen for NEW payments - this triggers the success popup!
         paymentListenerRef = db.ref(`tenant_ledger/${unitId}/payments`);
         paymentListenerRef.on('child_added', (snapshot) => {
             const payment = snapshot.val();
             console.log('💰 New payment detected in real-time:', payment);
             
-            // Mark payment as processed
             paymentProcessed = true;
-            
-            // Show SUCCESS state in the overlay
             showPaymentSuccess(payment.amount);
             
-            // Flash the balance
             const balanceEl = document.getElementById('displayBalance');
             balanceEl.classList.add('updating');
             setTimeout(() => {
                 balanceEl.classList.remove('updating');
             }, 1000);
             
-            // Re-render dashboard
             db.ref(`tenant_ledger/${unitId}`).once('value', (snap) => {
                 const data = snap.val();
                 if (data) {
@@ -1119,14 +1430,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const btn = document.getElementById('actionBtn');
         
         hideConfirm();
-        
-        // Reset payment processed flag
         paymentProcessed = false;
-        
-        // Show the loading overlay with bouncy balls
         showPaymentLoading();
-        
-        // Disable the pay button
         btn.disabled = true;
         btn.textContent = 'Processing...';
 
@@ -1148,17 +1453,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             console.log('📥 Response:', data);
 
-            // Check if the payment was successful or if there's an error
             if (response.ok && data.success) {
-                // The success popup will be shown by the Firebase listener
                 setStatus('✅ Request sent! Check your phone.', 'success');
                 document.getElementById('amountInput').value = '';
                 window.updateSummary();
-                
-                // If Firebase listener doesn't fire within 30 seconds, show timeout
-                // This is handled by the timeout timer in showPaymentLoading()
             } else {
-                // Check if it's a cancellation or error
                 const errorMsg = data.error || data.message || 'Unknown error';
                 if (errorMsg.toLowerCase().includes('cancel') || errorMsg.toLowerCase().includes('cancelled')) {
                     showPaymentCancelled();
@@ -1166,20 +1465,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     showPaymentError(errorMsg);
                 }
                 setStatus('❌ ' + errorMsg, 'error');
-                // Re-enable the button
                 btn.disabled = false;
                 btn.textContent = 'Pay Now';
             }
         } catch (error) {
             console.error('❌ Error:', error);
-            // Check if it's a network error
             if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
                 showPaymentError('Network error. Please check your internet connection.');
             } else {
                 showPaymentError(error.message);
             }
             setStatus('❌ Could not connect. Please try again.', 'error');
-            // Re-enable the button
             btn.disabled = false;
             btn.textContent = 'Pay Now';
         }
@@ -1385,7 +1681,6 @@ document.addEventListener('DOMContentLoaded', function() {
             tenantListenerRef = null;
         }
         
-        // Close payment overlay if open
         closePaymentOverlay();
         
         activeUnit = null;
