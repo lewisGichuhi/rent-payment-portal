@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenant Portal</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #f8fafc;
+            line-height: 1.6;
+        }
+        .container { width: 100%; max-width: 460px; }
+        .card {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(16px);
+            padding: 32px 28px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        .header { text-align: center; margin-bottom: 24px; }
+        .header .logo { font-size: 42px; margin-bottom: 4px; display: block; }
+        .header h1 { font-size: 20px; font-weight: 700; color: #f8fafc; }
+        .header .sub { color: #94a3b8; font-size: 12px; margin-top: 2px; }
+
+        .company-info {
+            background: rgba(99, 102, 241, 0.08);
+            border: 2px solid rgba(99, 102, 241, 0.12);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .company-info .name { color: #a5b4fc; font-weight: 700; font-size: 16px; }
+        .company-info .detail { color: #64748b; font-size: 11px; margin-top: 4px; }
+
+        .info-box {
+            background: rgba(16, 185, 129, 0.04);
+            border: 1px solid rgba(16, 185, 129, 0.08);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+        .info-box strong { color: #34d399; }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            font-size: 16px;
+            background: rgba(15, 23, 42, 0.6);
+            color: #f8fafc;
+            transition: all 0.3s;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            background: rgba(15, 23, 42, 0.8);
+        }
+        input::placeholder { color: #64748b; }
+        .hint { font-size: 11px; color: #64748b; margin-top: -8px; margin-bottom: 12px; }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);
+        }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(16, 185, 129, 0.35); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: #94a3b8;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); color: #f8fafc; }
+
+        .btn-auth {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #4f46e5, #3730a3);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(79, 70, 229, 0.25);
+        }
+        .btn-auth:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(79, 70, 229, 0.35); }
+
+        .summary-box {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin: 6px 0 16px 0;
+        }
+        .summary-box .title {
+            font-size: 10px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+        .summary-box .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .summary-box .row .val { color: #f8fafc; font-weight: 500; }
+        .summary-box .row .val.amount { color: #fbbf24; font-weight: 700; font-size: 15px; }
+        .summary-box .divider {
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            margin: 6px 0;
+        }
+        .summary-box .note {
+            font-size: 11px;
+            color: #64748b;
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        .status { font-size: 13px; text-align: center; margin-top: 12px; min-height: 20px; font-weight: 600; }
+        .status.success { color: #34d399; }
+        .status.error { color: #fb7185; }
+        .status.pending { color: #a5b4fc; }
+
+        .error-msg {
+            color: #fb7185;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: rgba(244, 63, 94, 0.08);
+            border-radius: 8px;
+            border: 1px solid rgba(244, 63, 94, 0.1);
+        }
+
+        .step { display: none; }
+        .step.active { display: block; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 12px 0 16px 0;
+        }
+        .tile {
+            cursor: pointer;
+            text-align: center;
+            padding: 10px 6px 12px 6px;
+            border-radius: 14px;
+            border: 2px solid transparent;
+            background: rgba(15, 23, 42, 0.4);
+            transition: all 0.2s;
+        }
+        .tile:hover { background: rgba(15, 23, 42, 0.6); transform: translateY(-2px); }
+        .tile.selected {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+        }
+        .tile img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 10px;
+            display: block;
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .tile .label {
+            font-size: 10px;
+            margin-top: 6px;
+            color: #94a3b8;
+            font-weight: 500;
+            line-height: 1.3;
+        }
+        .tile.selected .label { color: #f8fafc; }
+
+        .banner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(99, 102, 241, 0.06);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+        }
+        .banner img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+        .banner span { font-size: 13px; color: #e2e8f0; font-weight: 500; }
+        .banner .change {
+            margin-left: auto;
+            font-size: 11px;
+            color: #94a3b8;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .banner .change:hover { color: #f8fafc; }
+
+        .avatar { display: flex; justify-content: center; margin-bottom: 12px; }
+        .avatar img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .balance {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 16px;
+            margin: 16px 0;
+            text-align: center;
+        }
+        .balance .label {
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        .balance .amount { font-size: 32px; font-weight: 800; }
+        .balance .amount.positive { color: #fb7185; }
+        .balance .amount.zero { color: #34d399; }
+
+        .statement { margin: 12px 0 16px 0; }
+        .statement-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 13px;
+            color: #e2e8f0;
+        }
+        .statement-row:last-child { border-bottom: none; }
+        .statement-row .value.success { color: #34d399; }
+        .statement-row .value.danger { color: #fb7185; }
+
+        .logout {
+            text-align: center;
+            margin-top: 16px;
+            display: block;
+            color: #64748b;
+            font-size: 12px;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .logout:hover { color: #f8fafc; }
+
+        .pin-edit {
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            margin-top: 16px;
+            padding-top: 16px;
+        }
+        .pin-edit.hidden { display: none; }
+
+        .footer {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 10px;
+            color: #475569;
+        }
+
+        .loading {
+            text-align: center;
+            color: #64748b;
+            padding: 30px 10px;
+            font-size: 13px;
+        }
+        .loading .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255, 255, 255, 0.05);
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 10px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: #1e293b;
+            border-radius: 24px;
+            padding: 32px 28px;
+            max-width: 440px;
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .modal-box .icon { font-size: 48px; text-align: center; display: block; margin-bottom: 12px; }
+        .modal-box h2 { text-align: center; font-size: 18px; margin-bottom: 16px; color: #f8fafc; }
+        .modal-box .details {
+            background: rgba(15,23,42,0.5);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+        .modal-box .details .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .modal-box .details .row .val { color: #f8fafc; font-weight: 500; }
+        .modal-box .details .row .val.amount { color: #fbbf24; font-weight: 700; }
+        .modal-box .warning {
+            font-size: 11px;
+            color: #94a3b8;
+            text-align: center;
+            margin-bottom: 14px;
+            padding: 10px;
+            background: rgba(244,63,94,0.06);
+            border-radius: 8px;
+            border: 1px solid rgba(244,63,94,0.06);
+            line-height: 1.6;
+        }
+        .modal-box .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-box .btn-group button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .modal-box .btn-group .btn-cancel {
+            background: rgba(255,255,255,0.05);
+            color: #94a3b8;
+        }
+        .modal-box .btn-group .btn-cancel:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .modal-box .btn-group .btn-confirm {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 20px rgba(16,185,129,0.25);
+        }
+        .modal-box .btn-group .btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(16,185,129,0.35);
+        }
+
+        @media (max-width: 480px) {
+            .card { padding: 24px 18px; }
+            .grid { gap: 8px; }
+            .balance .amount { font-size: 26px; }
+            .modal-box { padding: 24px 18px; }
+            .modal-box .btn-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- LOGIN CARD -->
+    <div class="card" id="loginCard">
+        <div class="header">
+            <span class="logo">🏢</span>
+            <h1>Tenant Portal</h1>
+            <p class="sub">Secure Access</p>
+        </div>
+
+        <div class="company-info">
+            <div class="name">Your Property Management Ltd</div>
+            <div class="detail">Registered in Kenya</div>
+        </div>
+
+        <div class="info-box">
+            Enter your PIN to view your account and make payments.
+        </div>
+
+        <div id="errorArea" class="error-msg" style="display:none;"></div>
+
+        <div id="pickStep" class="step active">
+            <label>Select Your Unit</label>
+            <div id="unitGrid" class="grid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading units...
+                </div>
+            </div>
+            <p style="font-size:11px;color:#64748b;text-align:center;margin-top:6px;">Tap your photo to continue</p>
+        </div>
+
+        <div id="pinStep" class="step">
+            <div class="banner" id="selectedBanner">
+                <img id="selectedImg" src="" alt="">
+                <span id="selectedLabel">Select a unit</span>
+                <span class="change" onclick="backToPicker()">change</span>
+            </div>
+
+            <label for="userPin">Your PIN</label>
+            <input type="password" id="userPin" pattern="[0-9]*" inputmode="numeric" maxlength="6" placeholder="••••••" autofocus>
+            <p class="hint">Provided by your property manager</p>
+            <button class="btn-auth" onclick="verifyLogin()">Access Account</button>
+        </div>
+    </div>
+
+    <!-- DASHBOARD CARD -->
+    <div class="card" id="dashboardCard" style="display:none;">
+
+        <div class="header" style="margin-bottom:12px;">
+            <span class="logo" style="font-size:32px;">🏢</span>
+            <h1 style="font-size:18px;">Your Property Management Ltd</h1>
+            <p class="sub">Dashboard</p>
+        </div>
+
+        <div class="company-info">
+            <div class="name">Welcome, <span id="displayTenantName">Tenant</span></div>
+            <div class="detail"><span id="displayUnit">Unit --</span></div>
+        </div>
+
+        <div class="balance" id="balanceBox">
+            <div class="label" id="billingLabel">Current Balance</div>
+            <div class="amount" id="displayBalance">Ksh 0</div>
+        </div>
+
+        <div class="statement">
+            <div class="statement-row"><span>Arrears Forward</span><span id="displayArrears">Ksh 0</span></div>
+            <div class="statement-row"><span>Current Charges</span><span id="displayRent">Ksh 0</span></div>
+            <div class="statement-row"><span>Payments Made</span><span id="displayPaid" class="value success">Ksh 0</span></div>
+        </div>
+
+        <!-- PAYMENT SECTION -->
+        <div style="margin-top:16px;">
+
+            <div class="summary-box">
+                <div class="title">📋 Payment</div>
+                <div class="row">
+                    <span>Recipient:</span>
+                    <span class="val">Your Property Management Ltd</span>
+                </div>
+                <div class="row">
+                    <span>Reference:</span>
+                    <span class="val" id="summaryHouse">--</span>
+                </div>
+                <div class="row">
+                    <span>Amount:</span>
+                    <span class="val amount" id="summaryAmount">KES 0.00</span>
+                </div>
+                <div class="divider"></div>
+                <div class="note">
+                    You will receive a prompt on your phone to confirm.
+                </div>
+            </div>
+
+            <label for="phoneInput">Phone Number</label>
+            <input type="tel" id="phoneInput" placeholder="0712345678" pattern="[0-9]*" inputmode="numeric">
+            <p class="hint">For payment confirmation</p>
+
+            <label for="amountInput">Amount (KES)</label>
+            <input type="number" id="amountInput" placeholder="Enter amount" min="1" oninput="updateSummary()">
+
+            <button class="btn-primary" id="actionBtn" onclick="showConfirm()">
+                Pay Now
+            </button>
+            <div class="status" id="actionStatus"></div>
+        </div>
+
+        <button class="btn-secondary" id="togglePinBtn" onclick="togglePinSection()">Change PIN</button>
+        <div id="pinEditSection" class="pin-edit hidden">
+            <div id="pinErrorArea" class="error-msg" style="display:none;text-align:left;"></div>
+            <label for="newPin">New PIN</label>
+            <input type="password" id="newPin" pattern="[0-9]*" inputmode="numeric" maxlength="6" placeholder="Enter new PIN">
+            <p class="hint">4-6 digit numeric code</p>
+            <button class="btn-primary" onclick="updatePin()" style="background:linear-gradient(135deg,#4f46e5,#3730a3);box-shadow:0 4px 20px rgba(79,70,229,0.25);">Save PIN</button>
+        </div>
+
+        <a href="#" class="logout" onclick="logout()">Sign Out</a>
+
+        <div class="footer">
+            &copy; 2024 Your Property Management Ltd
+        </div>
+    </div>
+
+</div>
+
+<!-- CONFIRMATION MODAL -->
+<div class="modal-overlay" id="confirmOverlay">
+    <div class="modal-box">
+        <span class="icon">📋</span>
+        <h2>Confirm Payment</h2>
+
+        <div class="details">
+            <div class="row">
+                <span>Recipient:</span>
+                <span class="val">Your Property Management Ltd</span>
+            </div>
+            <div class="row">
+                <span>Reference:</span>
+                <span class="val" id="confirmHouse">--</span>
+            </div>
+            <div class="row">
+                <span>Amount:</span>
+                <span class="val amount" id="confirmAmount">KES 0.00</span>
+            </div>
+            <div class="row">
+                <span>Phone:</span>
+                <span class="val" id="confirmPhone">--</span>
+            </div>
+        </div>
+
+        <div class="warning">
+            A confirmation request will be sent to your phone.
+            You must approve the request to complete the transaction.
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-cancel" onclick="hideConfirm()">Cancel</button>
+            <button class="btn-confirm" onclick="processTransaction()">Confirm &amp; Send</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// TENANT IMAGES - ALL DATA LOADED HERE
+// ============================================================
+const tenantImages = {
+    "baba tony": "https://uploads.onecompiler.io/447n5hakp/1783145590311/ma%20tony.jpg",
+    "spiroza": "https://uploads.onecompiler.io/447n5hakp/1783145701521/siproza.jpg",
+    "baba simo": "https://uploads.onecompiler.io/447n5hakp/1783145761365/ba%20simo.jpg",
+    "baba don": "https://uploads.onecompiler.io/447n5hakp/1783145852563/ba%20don.jpg",
+    "githinji": "https://uploads.onecompiler.io/447n5hakp/1783145878163/githinji.jpg",
+    "oscar": "https://uploads.onecompiler.io/447n5hakp/1783145808042/oscar.jpg"
+};
+const DEFAULT_AVATAR = "https://api.dicebear.com/7.x/identicon/svg?seed=house";
+
+// ============================================================
+// FIREBASE CONFIG
+// ============================================================
+const firebaseConfig = {
+    apiKey: "AIzaSyDbkC9jWHaE7ztEqMer5XmB_n0Eb35UtAI",
+    authDomain: "rent-collection-1b773.firebaseapp.com",
+    databaseURL: "https://rent-collection-1b773-default-rtdb.firebaseio.com",
+    projectId: "rent-collection-1b773",
+    storageBucket: "rent-collection-1b773.appspot.com",
+    messagingSenderId: "1045895163870",
+    appId: "1:1045895163870:web:0e08ce6efef3b17fceb74f"
+};
+
+// ============================================================
+// BACKEND URL
+// ============================================================
+function getServerUrl() {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return 'http://localhost:10000/api/stkpush';
+    }
+    return 'https://new-mpesa-backend-1.onrender.com/api/stkpush';
+}
+
+const PAYMENT_SERVER_URL = getServerUrl();
+console.log('📍 Backend URL:', PAYMENT_SERVER_URL);
+
+// ============================================================
+// MAIN APP
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+
+    if (typeof firebase === 'undefined') {
+        document.getElementById('unitGrid').innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;color:#fb7185;padding:20px;font-size:13px;">
+                Unable to load data. Please check your connection.
+            </div>
+        `;
+        return;
+    }
+
+    try {
+        firebase.initializeApp(firebaseConfig);
+        console.log('✅ Firebase ready');
+    } catch (e) {
+        console.error('Firebase error:', e);
+        return;
+    }
+
+    const db = firebase.database();
+
+    let tenantData = {};
+    let configData = {};
+    let activeUnit = null;
+    let selectedUnit = null;
+    let pendingTransaction = null;
+
+    function getUnitImage(id) {
+        const tenant = tenantData[id];
+        const name = tenant && tenant.name ? String(tenant.name).trim().toLowerCase() : "";
+        if (!name) return DEFAULT_AVATAR;
+        if (tenantImages[name]) return tenantImages[name];
+        for (const key in tenantImages) {
+            if (name.includes(key) || key.includes(name)) return tenantImages[key];
+        }
+        return DEFAULT_AVATAR;
+    }
+
+    function showError(id, msg) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (msg) { el.textContent = msg; el.style.display = 'block'; } 
+        else { el.style.display = 'none'; }
+    }
+
+    function setStatus(msg, type) {
+        const el = document.getElementById('actionStatus');
+        if (!el) return;
+        el.textContent = msg;
+        el.className = 'status' + (type ? ' ' + type : '');
+    }
+
+    window.updateSummary = function() {
+        const amount = document.getElementById('amountInput').value;
+        const unit = activeUnit || '--';
+        const tenant = tenantData[activeUnit];
+        const name = tenant && tenant.name ? tenant.name : '';
+        const displayAmount = amount ? `KES ${parseFloat(amount).toFixed(2)}` : 'KES 0.00';
+        const displayHouse = unit !== '--' ? `Unit ${unit}${name ? ' (' + name + ')' : ''}` : '--';
+        
+        document.getElementById('summaryAmount').textContent = displayAmount;
+        document.getElementById('summaryHouse').textContent = displayHouse;
+        document.getElementById('confirmAmount').textContent = displayAmount;
+        document.getElementById('confirmHouse').textContent = displayHouse;
+    };
+
+    window.showConfirm = function() {
+        const phone = document.getElementById('phoneInput').value.trim();
+        const amount = document.getElementById('amountInput').value.trim();
+
+        if (!phone) {
+            setStatus('Please enter your phone number.', 'error');
+            return;
+        }
+        if (!amount || Number(amount) <= 0) {
+            setStatus('Please enter a valid amount.', 'error');
+            return;
+        }
+        if (!activeUnit) {
+            setStatus('Please log in again.', 'error');
+            return;
+        }
+
+        document.getElementById('confirmPhone').textContent = phone;
+        document.getElementById('confirmAmount').textContent = `KES ${parseFloat(amount).toFixed(2)}`;
+        pendingTransaction = { phone, amount };
+        document.getElementById('confirmOverlay').classList.add('active');
+    };
+
+    window.hideConfirm = function() {
+        document.getElementById('confirmOverlay').classList.remove('active');
+        pendingTransaction = null;
+    };
+
+    window.processTransaction = async function() {
+        if (!pendingTransaction) return;
+        const { phone, amount } = pendingTransaction;
+        const btn = document.getElementById('actionBtn');
+        
+        hideConfirm();
+        setStatus('Processing...', 'pending');
+        btn.disabled = true;
+        btn.textContent = 'Processing...';
+
+        try {
+            console.log('📤 Sending to:', PAYMENT_SERVER_URL);
+            console.log('📤 Payload:', { phone, amount, houseId: activeUnit });
+
+            const response = await fetch(PAYMENT_SERVER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    phone: phone,
+                    amount: amount,
+                    houseId: activeUnit,
+                    accountReference: `${configData.mpesaAccount || ''}${activeUnit}`
+                })
+            });
+
+            const data = await response.json();
+            console.log('📥 Response:', data);
+
+            if (response.ok && data.success) {
+                setStatus('✅ Request sent! Check your phone.', 'success');
+                document.getElementById('amountInput').value = '';
+                window.updateSummary();
+            } else {
+                setStatus('❌ Failed: ' + (data.error || data.message || 'Unknown error'), 'error');
+            }
+        } catch (error) {
+            console.error('❌ Error:', error);
+            setStatus('❌ Could not connect. Please try again.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Pay Now';
+        }
+    };
+
+    // ============================================================
+    // FIREBASE DATA - LOADS FROM DATABASE
+    // ============================================================
+    db.ref().on("value", function(snapshot) {
+        try {
+            const data = snapshot.val() || {};
+            tenantData = data.tenant_ledger || {};
+            configData = data.system_config || {};
+            
+            console.log('📥 Tenant Data Loaded:', Object.keys(tenantData).length, 'units');
+            console.log('📥 Config Data:', configData);
+            
+            renderUnits();
+            if (activeUnit && tenantData[activeUnit]) {
+                renderDashboard(activeUnit);
+            }
+        } catch (e) {
+            console.error('Data error:', e);
+        }
+    }, function(error) {
+        console.error('Firebase error:', error);
+        document.getElementById('unitGrid').innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;color:#94a3b8;padding:20px;font-size:13px;">
+                Unable to load data. Please refresh.
+            </div>
+        `;
+    });
+
+    function renderUnits() {
+        const grid = document.getElementById('unitGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        
+        const ids = Object.keys(tenantData).sort();
+        
+        if (ids.length === 0) {
+            grid.innerHTML = `
+                <div style="grid-column:1/-1;text-align:center;color:#94a3b8;padding:20px;font-size:13px;">
+                    No units available.
+                </div>
+            `;
+            return;
+        }
+        
+        ids.forEach(function(id) {
+            const tenant = tenantData[id];
+            const name = tenant && tenant.name ? tenant.name.trim() : "Vacant";
+            const label = 'Unit ' + id + (name !== "Vacant" ? ' — ' + name : '');
+            const tile = document.createElement('div');
+            tile.className = 'tile' + (selectedUnit === id ? ' selected' : '');
+            tile.onclick = function() { selectUnit(id); };
+            tile.innerHTML = '<img src="' + getUnitImage(id) + '" alt="' + label + '" onerror="this.src=\'' + DEFAULT_AVATAR + '\'"><div class="label">' + label + '</div>';
+            grid.appendChild(tile);
+        });
+    }
+
+    window.selectUnit = function(id) {
+        selectedUnit = id;
+        showError('errorArea', null);
+        const tenant = tenantData[id];
+        const name = tenant && tenant.name ? tenant.name.trim() : "Vacant";
+        const label = 'Unit ' + id + (name !== "Vacant" ? ' — ' + name : '');
+        document.getElementById('selectedImg').src = getUnitImage(id);
+        document.getElementById('selectedLabel').textContent = label;
+        document.getElementById('pickStep').classList.remove('active');
+        document.getElementById('pinStep').classList.add('active');
+        document.getElementById('userPin').value = '';
+        document.getElementById('userPin').focus();
+        renderUnits();
+    };
+
+    window.backToPicker = function() {
+        selectedUnit = null;
+        showError('errorArea', null);
+        document.getElementById('pinStep').classList.remove('active');
+        document.getElementById('pickStep').classList.add('active');
+        renderUnits();
+    };
+
+    window.verifyLogin = function() {
+        const unit = selectedUnit;
+        const pin = document.getElementById('userPin').value.trim();
+        showError('errorArea', null);
+        if (!unit) {
+            showError('errorArea', 'Please select your unit first.');
+            return;
+        }
+        if (!pin) {
+            showError('errorArea', 'Please enter your PIN.');
+            return;
+        }
+        const tenant = tenantData[unit];
+        if (tenant && String(tenant.pin).trim() === pin) {
+            activeUnit = unit;
+            document.getElementById('loginCard').style.display = 'none';
+            document.getElementById('dashboardCard').style.display = 'block';
+            renderDashboard(unit);
+            window.updateSummary();
+        } else {
+            showError('errorArea', 'Invalid PIN. Please try again.');
+        }
+    };
+
+    function renderDashboard(id) {
+        const tenant = tenantData[id];
+        if (!tenant) return;
+        const arrears = Number(tenant.lastMonth || 0);
+        const rent = Number(tenant.current || 0);
+        const paid = Number(tenant.paid || 0);
+        const total = (arrears + rent) - paid;
+        document.getElementById('displayUnit').textContent = 'Unit ' + id;
+        document.getElementById('displayTenantName').textContent = tenant.name || 'Resident';
+        document.getElementById('billingLabel').textContent = 'Statement - ' + (configData.monthName || 'Current Period');
+        const balanceEl = document.getElementById('displayBalance');
+        balanceEl.textContent = 'Ksh ' + total.toLocaleString();
+        balanceEl.className = 'amount' + (total > 0 ? ' positive' : ' zero');
+        document.getElementById('displayArrears').textContent = 'Ksh ' + arrears.toLocaleString();
+        document.getElementById('displayRent').textContent = 'Ksh ' + rent.toLocaleString();
+        document.getElementById('displayPaid').textContent = 'Ksh ' + paid.toLocaleString();
+        const amountField = document.getElementById('amountInput');
+        if (amountField && !amountField.dataset.userEdited) {
+            amountField.value = total > 0 ? total : '';
+            window.updateSummary();
+        }
+    }
+
+    window.togglePinSection = function() {
+        const section = document.getElementById('pinEditSection');
+        const btn = document.getElementById('togglePinBtn');
+        if (section.classList.contains('hidden')) {
+            section.classList.remove('hidden');
+            btn.textContent = 'Close';
+        } else {
+            section.classList.add('hidden');
+            btn.textContent = 'Change PIN';
+            showError('pinErrorArea', null);
+            document.getElementById('newPin').value = '';
+        }
+    };
+
+    window.updatePin = function() {
+        const newPin = document.getElementById('newPin').value.trim();
+        showError('pinErrorArea', null);
+        if (!/^\d{4,6}$/.test(newPin)) {
+            showError('pinErrorArea', 'PIN must be 4-6 digits.');
+            return;
+        }
+        if (!activeUnit) return;
+        db.ref('tenant_ledger/' + activeUnit + '/pin').set(newPin)
+            .then(function() {
+                alert('PIN updated successfully!');
+                window.togglePinSection();
+            })
+            .catch(function() {
+                showError('pinErrorArea', 'Error updating PIN.');
+            });
+    };
+
+    window.logout = function() {
+        activeUnit = null;
+        selectedUnit = null;
+        document.getElementById('userPin').value = '';
+        document.getElementById('newPin').value = '';
+        document.getElementById('phoneInput').value = '';
+        document.getElementById('amountInput').value = '';
+        document.getElementById('pinEditSection').classList.add('hidden');
+        document.getElementById('togglePinBtn').textContent = 'Change PIN';
+        document.getElementById('dashboardCard').style.display = 'none';
+        document.getElementById('loginCard').style.display = 'block';
+        document.getElementById('pinStep').classList.remove('active');
+        document.getElementById('pickStep').classList.add('active');
+        showError('errorArea', null);
+        setStatus('', '');
+        renderUnits();
+    };
+
+    renderUnits();
+});
+</script>
+</body>
+</html>
