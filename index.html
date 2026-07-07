@@ -3,7 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- ============================================================
+         LINK PREVIEW - SOCIAL MEDIA CARDS (WhatsApp, Facebook, etc.)
+         ============================================================ -->
+    
+    <!-- Primary Meta Tags -->
     <title>Tenant Portal - Rent Payment</title>
+    <meta name="title" content="Tenant Portal - Pay Your Rent Online">
+    <meta name="description" content="Pay your rent securely online. View your balance, payment history, and make M-Pesa payments instantly.">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://new-mpesa-backend-1.onrender.com/">
+    <meta property="og:title" content="Tenant Portal - Pay Your Rent Online">
+    <meta property="og:description" content="Pay your rent securely online. View your balance, payment history, and make M-Pesa payments instantly.">
+    <meta property="og:image" content="https://i.imgur.com/4HZ8vU7.png">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://new-mpesa-backend-1.onrender.com/">
+    <meta property="twitter:title" content="Tenant Portal - Pay Your Rent Online">
+    <meta property="twitter:description" content="Pay your rent securely online. View your balance, payment history, and make M-Pesa payments instantly.">
+    <meta property="twitter:image" content="https://i.imgur.com/4HZ8vU7.png">
+    
+    <!-- WhatsApp Preview (Uses og:image and og:title) -->
+    <!-- For best WhatsApp preview, use a 1.91:1 ratio image (1200x630px) -->
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
@@ -11,6 +37,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
     <style>
+        /* ... your existing styles ... */
+        /* (keep all your existing CSS from the previous code) */
+        
+        /* I'll show the full code below */
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
@@ -25,7 +56,6 @@
             overflow: hidden;
         }
 
-        /* ColorBends Background Container */
         #bg-container {
             position: fixed;
             top: 0;
@@ -72,9 +102,7 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
         }
 
-        /* ============================================================
-           LANDING PAGE HEADER
-           ============================================================ */
+        /* LANDING PAGE HEADER */
         .landing-header {
             text-align: center;
             margin-bottom: 24px;
@@ -105,9 +133,7 @@
             -webkit-text-fill-color: #94a3b8;
         }
 
-        /* ============================================================
-           APP INFO SECTION
-           ============================================================ */
+        /* APP INFO SECTION - This is what shows inside the page */
         .app-info {
             background: rgba(15, 23, 42, 0.4);
             border-radius: 16px;
@@ -173,6 +199,8 @@
             color: #34d399;
         }
 
+        /* ... rest of your CSS ... */
+        
         .header { text-align: center; margin-bottom: 24px; }
         .header .logo { font-size: 42px; margin-bottom: 4px; display: block; }
         .header h1 { font-size: 20px; font-weight: 700; color: #f8fafc; }
@@ -595,9 +623,7 @@
             box-shadow: 0 6px 25px rgba(16,185,129,0.35);
         }
 
-        /* ============================================================
-           PAYMENT STATUS OVERLAY - LOADING / SUCCESS / ERROR
-           ============================================================ */
+        /* PAYMENT STATUS OVERLAY */
         .payment-overlay {
             display: none;
             position: fixed;
@@ -629,7 +655,6 @@
             to { opacity: 1; transform: scale(1); }
         }
 
-        /* BOUNCY BALLS LOADING ANIMATION */
         .bouncy-balls {
             display: flex;
             justify-content: center;
@@ -766,9 +791,7 @@
 </head>
 <body>
 
-<!-- ============================================================
-     COLORBENDS BACKGROUND
-     ============================================================ -->
+<!-- COLORBENDS BACKGROUND -->
 <div id="bg-container"></div>
 
 <script>
@@ -1043,18 +1066,14 @@
     <!-- LOGIN CARD -->
     <div class="card" id="loginCard">
         
-        <!-- ============================================================
-             LANDING HEADER - SHOWS WHEN LINK IS OPENED
-             ============================================================ -->
+        <!-- LANDING HEADER -->
         <div class="landing-header">
             <span class="logo">🏢</span>
             <h1>Tenant Portal</h1>
             <p class="subtitle">Secure Rent Payment System</p>
         </div>
 
-        <!-- ============================================================
-             APP INFO - HOW TO USE THE WEBSITE
-             ============================================================ -->
+        <!-- APP INFO - How to use the website (visible inside the app) -->
         <div class="app-info">
             <h3>📖 How It Works</h3>
             
@@ -1172,9 +1191,7 @@
             </div>
         </div>
 
-        <!-- ============================================================
-             PAYMENT SECTION - COMPLETE WITH STK PUSH
-             ============================================================ -->
+        <!-- PAYMENT SECTION -->
         <div style="margin-top:16px;">
 
             <div class="summary-box">
@@ -1228,9 +1245,7 @@
 
 </div>
 
-<!-- ============================================================
-     CONFIRMATION MODAL
-     ============================================================ -->
+<!-- CONFIRMATION MODAL -->
 <div class="modal-overlay" id="confirmOverlay">
     <div class="modal-box">
         <span class="icon">📋</span>
@@ -1267,9 +1282,7 @@
     </div>
 </div>
 
-<!-- ============================================================
-     PAYMENT STATUS OVERLAY (Loading / Success / Error / Timeout)
-     ============================================================ -->
+<!-- PAYMENT STATUS OVERLAY -->
 <div class="payment-overlay" id="paymentOverlay">
     <div class="status-container">
 
