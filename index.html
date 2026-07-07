@@ -2,60 +2,28 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- ============================================================
-         LINK PREVIEW - SOCIAL MEDIA CARDS (WhatsApp, Facebook, etc.)
-         ============================================================ -->
-    
-    <!-- Primary Meta Tags -->
-    <title>Tenant Portal - Rent Payment</title>
-    <meta name="title" content="Tenant Portal - Pay Your Rent Online">
-    <meta name="description" content="Pay your rent securely online. View your balance, payment history, and make M-Pesa payments instantly.">
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://new-mpesa-backend-1.onrender.com/">
-    <meta property="og:title" content="Tenant Portal - Pay Your Rent Online">
-    <meta property="og:description" content="Pay your rent securely online. View your balance, payment history, and make M-Pesa payments instantly.">
-    <meta property="og:image" content="https://i.imgur.com/4HZ8vU7.png">
-    
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://new-mpesa-backend-1.onrender.com/">
-    <meta property="twitter:title" content="Tenant Portal - Pay Your Rent Online">
-    <meta property="twitter:description" content="Pay your rent securely online. View your balance, payment history, and make M-Pesa payments instantly.">
-    <meta property="twitter:image" content="https://i.imgur.com/4HZ8vU7.png">
-    
-    <!-- WhatsApp Preview (Uses og:image and og:title) -->
-    <!-- For best WhatsApp preview, use a 1.91:1 ratio image (1200x630px) -->
-    
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Rent Dashboard</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
     <!-- Three.js for ColorBends background -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
     <style>
-        /* ... your existing styles ... */
-        /* (keep all your existing CSS from the previous code) */
-        
-        /* I'll show the full code below */
-        
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-            background: #0f172a;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            color: #f8fafc;
-            line-height: 1.6;
+        html, body {
+            height: 100%;
             overflow: hidden;
         }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            position: relative;
+        }
 
+        /* ColorBends Background Container */
         #bg-container {
             position: fixed;
             top: 0;
@@ -72,726 +40,198 @@
             height: 100% !important;
         }
 
-        .container {
-            width: 100%;
-            max-width: 460px;
+        /* Scrollable Container */
+        .scroll-container {
             position: relative;
             z-index: 1;
-            max-height: 98vh;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
             overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px 16px 30px;
         }
 
-        .container::-webkit-scrollbar {
+        .scroll-container::-webkit-scrollbar {
             width: 4px;
         }
-        .container::-webkit-scrollbar-track {
+        .scroll-container::-webkit-scrollbar-track {
             background: transparent;
         }
-        .container::-webkit-scrollbar-thumb {
+        .scroll-container::-webkit-scrollbar-thumb {
             background: rgba(255,255,255,0.1);
             border-radius: 10px;
         }
 
-        .card {
-            background: rgba(30, 41, 59, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            padding: 32px 28px;
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        }
-
-        /* LANDING PAGE HEADER */
-        .landing-header {
-            text-align: center;
-            margin-bottom: 24px;
+        .dashboard-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
             padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
         }
 
-        .landing-header .logo {
-            font-size: 64px;
-            margin-bottom: 8px;
-            display: block;
+        .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        
+        .stats-bar {
+            display: flex;
+            gap: 8px;
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            flex-wrap: wrap;
+        }
+        .stat-item { flex: 1 1 50%; text-align: center; }
+        .stat-item .label { font-size: 0.65em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-item .stat-val { font-size: 1.2em; font-weight: bold; color: #38bdf8; }
+
+        .panel {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 16px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            margin-bottom: 12px;
+        }
+        
+        .border-paid { border-color: rgba(16, 185, 129, 0.3); color: #10b981; }
+        .border-owing { border-color: rgba(239, 68, 68, 0.3); color: #ef4444; animation: glow 1.5s infinite; }
+        
+        @keyframes glow { 
+            0% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.2); } 
+            50% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); } 
+            100% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.2); } 
         }
 
-        .landing-header h1 {
-            font-size: 28px;
-            font-weight: 800;
-            color: #f8fafc;
+        .profile-img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-bottom: 8px; }
+        .label { font-size: 0.7em; color: #94a3b8; display: block; margin-top: 8px; }
+        
+        input {
+            width: 100%;
+            padding: 8px 10px;
+            background: rgba(15, 23, 42, 0.6);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+        input.pin-input { color: #fbbf24; font-weight: bold; letter-spacing: 2px; border-color: rgba(251, 191, 36, 0.3); }
+        
+        button {
+            padding: 8px 14px;
+            cursor: pointer;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 13px;
+            width: 100%;
+            margin-top: 8px;
+            transition: all 0.3s;
+            background: linear-gradient(135deg, #4f46e5, #3730a3);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.25);
+        }
+        button:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35); }
+        button:active { transform: translateY(0); }
+
+        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.25); }
+        .btn-danger:hover { box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35); }
+        .btn-success { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25); }
+        .btn-success:hover { box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35); }
+        .btn-secondary { background: rgba(255,255,255,0.05); box-shadow: none; }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); box-shadow: none; }
+
+        .contact-row { display: flex; gap: 6px; margin-top: 8px; }
+        .contact-row a { flex: 1; text-align: center; padding: 8px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 0.75em; transition: all 0.3s; }
+        .call-btn { background: #0284c7; color: white; }
+        .call-btn:hover { background: #0369a1; }
+        .whatsapp-btn { background: #25D366; color: #06210f; }
+        .whatsapp-btn:hover { background: #1da851; }
+        .no-phone { flex: 1; text-align: center; padding: 8px; border-radius: 8px; font-size: 0.75em; background: rgba(51, 65, 85, 0.5); color: #94a3b8; }
+
+        .payment-log { max-height: 120px; overflow-y: auto; margin-top: 6px; background: rgba(15, 23, 42, 0.3); border-radius: 8px; padding: 6px; }
+        .payment-log::-webkit-scrollbar { width: 3px; }
+        .payment-log::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        
+        .payment-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75em;
+            padding: 4px 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            color: #cbd5e1;
+            align-items: center;
+        }
+        .payment-row:last-child { border-bottom: none; }
+        .payment-row .delete-btn { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 2px 6px; cursor: pointer; font-size: 0.7em; }
+        .payment-row .delete-btn:hover { background: #dc2626; }
+        .payment-row .date { flex: 2; }
+        .payment-row .amount { flex: 1; text-align: right; margin-right: 6px; }
+        .payment-row .actions { flex: 0 0 auto; }
+        .payment-row .no-payments { color: #64748b; text-align: center; width: 100%; }
+
+        .add-payment-row { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+        .add-payment-row input { flex: 1; min-width: 80px; }
+        .add-payment-row button { width: auto; padding: 8px 14px; margin-top: 0; }
+
+        .access-note { color: #94a3b8; font-size: 0.8em; line-height: 1.4; margin: 6px 0 0; }
+        .login-error { color: #ef4444; font-size: 0.8em; margin-top: 6px; text-align: center; }
+        .loading-spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.1); border-top-color: #4f46e5; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 6px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .update-pin-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); }
+        .update-pin-section input { max-width: 200px; }
+        .update-pin-section button { max-width: 200px; background: linear-gradient(135deg, #10b981, #059669); }
+
+        /* Auth Screen */
+        #authScreen {
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        #authScreen h2 {
+            font-size: 20px;
+            margin-bottom: 6px;
             background: linear-gradient(to right, #a5b4fc, #818cf8, #6366f1);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-
-        .landing-header .subtitle {
-            color: #94a3b8;
-            font-size: 14px;
-            margin-top: 4px;
-            -webkit-text-fill-color: #94a3b8;
-        }
-
-        /* APP INFO SECTION - This is what shows inside the page */
-        .app-info {
-            background: rgba(15, 23, 42, 0.4);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.04);
-        }
-
-        .app-info h3 {
-            color: #a5b4fc;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .app-info .step {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-        }
-
-        .app-info .step:last-child {
-            border-bottom: none;
-        }
-
-        .app-info .step-number {
-            background: rgba(99, 102, 241, 0.15);
-            color: #a5b4fc;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-
-        .app-info .step-content {
-            flex: 1;
-        }
-
-        .app-info .step-content .title {
-            font-weight: 600;
-            font-size: 14px;
-            color: #e2e8f0;
-        }
-
-        .app-info .step-content .desc {
-            font-size: 13px;
-            color: #94a3b8;
-            line-height: 1.5;
-        }
-
-        .app-info .step-content .desc strong {
-            color: #34d399;
-        }
-
-        /* ... rest of your CSS ... */
-        
-        .header { text-align: center; margin-bottom: 24px; }
-        .header .logo { font-size: 42px; margin-bottom: 4px; display: block; }
-        .header h1 { font-size: 20px; font-weight: 700; color: #f8fafc; }
-        .header .sub { color: #94a3b8; font-size: 12px; margin-top: 2px; }
-
-        .company-info {
-            background: rgba(99, 102, 241, 0.08);
-            border: 2px solid rgba(99, 102, 241, 0.12);
-            border-radius: 12px;
-            padding: 14px 16px;
-            margin-bottom: 16px;
-            text-align: center;
-        }
-        .company-info .name { color: #a5b4fc; font-weight: 700; font-size: 16px; }
-        .company-info .detail { color: #64748b; font-size: 11px; margin-top: 4px; }
-
-        .info-box {
-            background: rgba(16, 185, 129, 0.04);
-            border: 1px solid rgba(16, 185, 129, 0.08);
-            border-radius: 10px;
-            padding: 12px 16px;
-            margin-bottom: 16px;
-            text-align: center;
-            font-size: 12px;
-            color: #94a3b8;
-            line-height: 1.6;
-        }
-        .info-box strong { color: #34d399; }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-top: 4px;
-        }
-        .status-badge.online { background: rgba(16, 185, 129, 0.15); color: #34d399; }
-        .status-badge.updating { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; animation: pulse 1s infinite; }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        label {
+        #authScreen .logo-icon {
+            font-size: 48px;
             display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            font-size: 11px;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        input {
-            width: 100%;
-            padding: 14px 16px;
-            margin-bottom: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            font-size: 16px;
-            background: rgba(15, 23, 42, 0.6);
-            color: #f8fafc;
-            transition: all 0.3s;
-            box-sizing: border-box;
-        }
-        input:focus {
-            outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-            background: rgba(15, 23, 42, 0.8);
-        }
-        input::placeholder { color: #64748b; }
-        .hint { font-size: 11px; color: #64748b; margin-top: -8px; margin-bottom: 12px; }
-
-        .btn-primary {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 16px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);
-        }
-        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(16, 185, 129, 0.35); }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-        .btn-secondary {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            color: #94a3b8;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-            transition: all 0.3s;
-            margin-top: 8px;
-        }
-        .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); color: #f8fafc; }
-
-        .btn-auth {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #4f46e5, #3730a3);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 16px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 20px rgba(79, 70, 229, 0.25);
-        }
-        .btn-auth:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(79, 70, 229, 0.35); }
-
-        .summary-box {
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 12px;
-            padding: 14px 16px;
-            margin: 6px 0 16px 0;
-        }
-        .summary-box .title {
-            font-size: 10px;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            text-align: center;
-        }
-        .summary-box .row {
-            display: flex;
-            justify-content: space-between;
-            padding: 3px 0;
-            font-size: 13px;
-            color: #94a3b8;
-        }
-        .summary-box .row .val { color: #f8fafc; font-weight: 500; }
-        .summary-box .row .val.amount { color: #fbbf24; font-weight: 700; font-size: 15px; }
-        .summary-box .divider {
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
-            margin: 6px 0;
-        }
-        .summary-box .note {
-            font-size: 11px;
-            color: #64748b;
-            text-align: center;
-            margin-top: 4px;
-        }
-
-        .status { font-size: 13px; text-align: center; margin-top: 12px; min-height: 20px; font-weight: 600; }
-        .status.success { color: #34d399; }
-        .status.error { color: #fb7185; }
-        .status.pending { color: #a5b4fc; }
-        .status.info { color: #94a3b8; }
-
-        .error-msg {
-            color: #fb7185;
-            font-size: 13px;
-            text-align: center;
-            margin-bottom: 12px;
-            padding: 10px;
-            background: rgba(244, 63, 94, 0.08);
-            border-radius: 8px;
-            border: 1px solid rgba(244, 63, 94, 0.1);
-        }
-
-        .step { display: none; }
-        .step.active { display: block; }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin: 12px 0 16px 0;
-        }
-        .tile {
-            cursor: pointer;
-            text-align: center;
-            padding: 10px 6px 12px 6px;
-            border-radius: 14px;
-            border: 2px solid transparent;
-            background: rgba(15, 23, 42, 0.4);
-            transition: all 0.2s;
-        }
-        .tile:hover { background: rgba(15, 23, 42, 0.6); transform: translateY(-2px); }
-        .tile.selected {
-            border-color: #6366f1;
-            background: rgba(99, 102, 241, 0.1);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
-        }
-        .tile img {
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            object-fit: cover;
-            border-radius: 10px;
-            display: block;
-            background: rgba(255, 255, 255, 0.03);
-        }
-        .tile .label {
-            font-size: 10px;
-            margin-top: 6px;
-            color: #94a3b8;
-            font-weight: 500;
-            line-height: 1.3;
-        }
-        .tile.selected .label { color: #f8fafc; }
-
-        .banner {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(99, 102, 241, 0.06);
-            border: 1px solid rgba(99, 102, 241, 0.12);
-            border-radius: 12px;
-            padding: 10px 14px;
-            margin-bottom: 16px;
-        }
-        .banner img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
-        .banner span { font-size: 13px; color: #e2e8f0; font-weight: 500; }
-        .banner .change {
-            margin-left: auto;
-            font-size: 11px;
-            color: #94a3b8;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-        .banner .change:hover { color: #f8fafc; }
-
-        .avatar { display: flex; justify-content: center; margin-bottom: 12px; }
-        .avatar img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid rgba(99, 102, 241, 0.3);
-        }
-
-        .balance {
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 16px;
-            margin: 16px 0;
-            text-align: center;
-            transition: all 0.3s;
-        }
-        .balance .label {
-            font-size: 11px;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
-        }
-        .balance .amount { font-size: 32px; font-weight: 800; transition: all 0.3s; }
-        .balance .amount.positive { color: #fb7185; }
-        .balance .amount.zero { color: #34d399; }
-        .balance .amount.updating { color: #a5b4fc; animation: pulse 0.8s ease-in-out; }
-
-        .statement { margin: 12px 0 16px 0; }
-        .statement-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            font-size: 13px;
-            color: #e2e8f0;
-        }
-        .statement-row:last-child { border-bottom: none; }
-        .statement-row .value.success { color: #34d399; }
-        .statement-row .value.danger { color: #fb7185; }
-
-        .payment-history {
-            margin-top: 12px;
-            max-height: 120px;
-            overflow-y: auto;
-            background: rgba(15, 23, 42, 0.3);
-            border-radius: 8px;
-            padding: 8px;
-        }
-        .payment-history .entry {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 0;
-            font-size: 12px;
-            color: #94a3b8;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-        }
-        .payment-history .entry:last-child { border-bottom: none; }
-        .payment-history .entry .amt { color: #34d399; font-weight: 500; }
-        .payment-history .empty { color: #64748b; text-align: center; padding: 8px; }
-
-        .logout {
-            text-align: center;
-            margin-top: 16px;
-            display: block;
-            color: #64748b;
-            font-size: 12px;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-        .logout:hover { color: #f8fafc; }
-
-        .pin-edit {
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            margin-top: 16px;
-            padding-top: 16px;
-        }
-        .pin-edit.hidden { display: none; }
-
-        .footer {
-            text-align: center;
-            margin-top: 16px;
-            font-size: 10px;
-            color: #475569;
-        }
-
-        .loading {
-            text-align: center;
-            color: #64748b;
-            padding: 30px 10px;
-            font-size: 13px;
-        }
-        .loading .spinner {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border: 3px solid rgba(255, 255, 255, 0.05);
-            border-top-color: #6366f1;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 10px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal-box {
-            background: #1e293b;
-            border-radius: 24px;
-            padding: 32px 28px;
-            max-width: 440px;
-            width: 100%;
-            border: 1px solid rgba(255,255,255,0.06);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-        }
-        .modal-box .icon { font-size: 48px; text-align: center; display: block; margin-bottom: 12px; }
-        .modal-box h2 { text-align: center; font-size: 18px; margin-bottom: 16px; color: #f8fafc; }
-        .modal-box .details {
-            background: rgba(15,23,42,0.5);
-            border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 14px;
-        }
-        .modal-box .details .row {
-            display: flex;
-            justify-content: space-between;
-            padding: 3px 0;
-            font-size: 13px;
-            color: #94a3b8;
-        }
-        .modal-box .details .row .val { color: #f8fafc; font-weight: 500; }
-        .modal-box .details .row .val.amount { color: #fbbf24; font-weight: 700; }
-        .modal-box .warning {
-            font-size: 11px;
-            color: #94a3b8;
-            text-align: center;
-            margin-bottom: 14px;
-            padding: 10px;
-            background: rgba(244,63,94,0.06);
-            border-radius: 8px;
-            border: 1px solid rgba(244,63,94,0.06);
-            line-height: 1.6;
-        }
-        .modal-box .btn-group {
-            display: flex;
-            gap: 10px;
-        }
-        .modal-box .btn-group button {
-            flex: 1;
-            padding: 14px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .modal-box .btn-group .btn-cancel {
-            background: rgba(255,255,255,0.05);
-            color: #94a3b8;
-        }
-        .modal-box .btn-group .btn-cancel:hover {
-            background: rgba(255,255,255,0.1);
-        }
-        .modal-box .btn-group .btn-confirm {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            box-shadow: 0 4px 20px rgba(16,185,129,0.25);
-        }
-        .modal-box .btn-group .btn-confirm:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(16,185,129,0.35);
-        }
-
-        /* PAYMENT STATUS OVERLAY */
-        .payment-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(12px);
-            z-index: 3000;
-            align-items: center;
-            justify-content: center;
-            padding: 30px;
-            flex-direction: column;
-        }
-        .payment-overlay.active { display: flex; }
-
-        .payment-overlay .status-container {
-            background: rgba(30, 41, 59, 0.9);
-            border-radius: 32px;
-            padding: 48px 40px 40px;
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.06);
-            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
-            animation: fadeIn 0.4s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .bouncy-balls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            margin: 20px 0 30px;
-            height: 60px;
-        }
-
-        .bouncy-ball {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #a5b4fc;
-            animation: bounce 1.4s ease-in-out infinite;
-        }
-
-        .bouncy-ball:nth-child(1) { animation-delay: 0s; }
-        .bouncy-ball:nth-child(2) { animation-delay: 0.2s; background: #818cf8; }
-        .bouncy-ball:nth-child(3) { animation-delay: 0.4s; background: #6366f1; }
-        .bouncy-ball:nth-child(4) { animation-delay: 0.6s; background: #4f46e5; }
-        .bouncy-ball:nth-child(5) { animation-delay: 0.8s; background: #4338ca; }
-
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-            40% { transform: scale(1.2); opacity: 1; }
-        }
-
-        .payment-overlay .status-icon {
-            font-size: 64px;
-            display: block;
-            margin: 10px 0 16px;
-        }
-
-        .payment-overlay .status-title {
-            font-size: 22px;
-            font-weight: 700;
             margin-bottom: 6px;
         }
 
-        .payment-overlay .status-title.success { color: #34d399; }
-        .payment-overlay .status-title.error { color: #fb7185; }
-        .payment-overlay .status-title.loading { color: #a5b4fc; }
-        .payment-overlay .status-title.cancelled { color: #fbbf24; }
-        .payment-overlay .status-title.timeout { color: #f97316; }
-
-        .payment-overlay .status-sub {
-            font-size: 14px;
-            color: #94a3b8;
-            line-height: 1.6;
-            margin-bottom: 8px;
-        }
-
-        .payment-overlay .status-amount {
-            font-size: 28px;
-            font-weight: 800;
-            color: #fbbf24;
-            margin: 12px 0 8px;
-        }
-
-        .payment-overlay .btn-status {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 20px;
-        }
-
-        .payment-overlay .btn-status-success {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);
-        }
-        .payment-overlay .btn-status-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.35);
-        }
-
-        .payment-overlay .btn-status-error {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.25);
-        }
-        .payment-overlay .btn-status-error:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.35);
-        }
-
-        .payment-overlay .btn-status-cancelled {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.25);
-        }
-        .payment-overlay .btn-status-cancelled:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.35);
-        }
-
-        .payment-overlay .btn-status-timeout {
-            background: linear-gradient(135deg, #f97316, #ea580c);
-            color: white;
-            box-shadow: 0 4px 20px rgba(249, 115, 22, 0.25);
-        }
-        .payment-overlay .btn-status-timeout:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(249, 115, 22, 0.35);
-        }
-
-        .payment-overlay .timer-text {
-            font-size: 13px;
-            color: #64748b;
-            margin-top: 12px;
-            font-weight: 500;
-        }
-
-        @media (max-width: 480px) {
-            .card { padding: 24px 18px; }
-            .grid { gap: 8px; }
-            .balance .amount { font-size: 26px; }
-            .modal-box { padding: 24px 18px; }
-            .modal-box .btn-group { flex-direction: column; }
-            .payment-overlay .status-container { padding: 32px 20px 28px; }
-            .payment-overlay .status-icon { font-size: 48px; }
-            .bouncy-ball { width: 14px; height: 14px; gap: 8px; }
-            .landing-header .logo { font-size: 48px; }
-            .landing-header h1 { font-size: 22px; }
-            .app-info { padding: 16px; }
+        @media (max-width: 600px) {
+            .scroll-container { padding: 12px 12px 20px; }
+            .panel { padding: 14px 12px; }
+            .stats-bar { padding: 10px 12px; }
+            .stat-item .stat-val { font-size: 1em; }
+            .update-pin-section input { max-width: 100%; }
+            .update-pin-section button { max-width: 100%; }
+            .add-payment-row input { flex: 1 1 100%; }
+            .add-payment-row button { width: 100%; }
+            .profile-img { width: 50px; height: 50px; }
         }
     </style>
 </head>
 <body>
 
-<!-- COLORBENDS BACKGROUND -->
+<!-- ColorBends Background -->
 <div id="bg-container"></div>
 
 <script>
@@ -801,11 +241,9 @@
 (function() {
     const container = document.getElementById('bg-container');
     
-    // Scene setup
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     
-    // Renderer
     const renderer = new THREE.WebGLRenderer({
         antialias: false,
         powerPreference: 'high-performance',
@@ -818,7 +256,6 @@
     renderer.domElement.style.display = 'block';
     container.appendChild(renderer.domElement);
     
-    // Resize handler
     function resize() {
         const w = container.clientWidth || window.innerWidth;
         const h = container.clientHeight || window.innerHeight;
@@ -827,9 +264,6 @@
     resize();
     window.addEventListener('resize', resize);
     
-    // ============================================================
-    // COLORBENDS SHADER
-    // ============================================================
     const MAX_COLORS = 8;
     
     const vertexShader = `
@@ -931,15 +365,14 @@
         }
     `;
     
-    // Colors: gradient from purple to blue to pink
     const colors = [
-        new THREE.Color(0x8a5cff), // purple
-        new THREE.Color(0x6366f1), // indigo
-        new THREE.Color(0x3b82f6), // blue
-        new THREE.Color(0x06b6d4), // cyan
-        new THREE.Color(0x10b981), // green
-        new THREE.Color(0xf59e0b), // amber
-        new THREE.Color(0xf472b6)  // pink
+        new THREE.Color(0x8a5cff),
+        new THREE.Color(0x6366f1),
+        new THREE.Color(0x3b82f6),
+        new THREE.Color(0x06b6d4),
+        new THREE.Color(0x10b981),
+        new THREE.Color(0xf59e0b),
+        new THREE.Color(0xf472b6)
     ];
     
     const colorVecs = colors.map(c => c.clone());
@@ -948,7 +381,6 @@
     }
     const colorArray = colorVecs.map(c => new THREE.Vector3(c.r, c.g, c.b));
     
-    // Uniforms
     const uniforms = {
         uCanvas: { value: new THREE.Vector2(1, 1) },
         uTime: { value: 0 },
@@ -979,20 +411,18 @@
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
     
-    // Pointer tracking
     const pointerTarget = new THREE.Vector2(0, 0);
     const pointerCurrent = new THREE.Vector2(0, 0);
     let pointerSmooth = 8;
     
-    function onPointerMove(e) {
+    container.addEventListener('pointermove', function(e) {
         const rect = container.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / (rect.width || 1)) * 2 - 1;
         const y = -(((e.clientY - rect.top) / (rect.height || 1)) * 2 - 1);
         pointerTarget.set(x, y);
-    }
+    });
     
-    container.addEventListener('pointermove', onPointerMove);
-    container.addEventListener('touchmove', (e) => {
+    container.addEventListener('touchmove', function(e) {
         const touch = e.touches[0];
         if (touch) {
             const rect = container.getBoundingClientRect();
@@ -1002,7 +432,6 @@
         }
     }, { passive: true });
     
-    // Animation loop
     const clock = new THREE.Clock();
     let rotationAngle = 0;
     const rotationSpeed = 0.03;
@@ -1011,22 +440,17 @@
         const dt = clock.getDelta();
         const elapsed = clock.getElapsedTime();
         
-        // Update time
         uniforms.uTime.value = elapsed;
-        
-        // Auto-rotate
         rotationAngle += rotationSpeed * dt;
         const rad = rotationAngle;
         uniforms.uRot.value.set(Math.cos(rad), Math.sin(rad));
         
-        // Smooth pointer
         const cur = pointerCurrent;
         const tgt = pointerTarget;
         const amt = Math.min(1, dt * pointerSmooth);
         cur.lerp(tgt, amt);
         uniforms.uPointer.value.copy(cur);
         
-        // Update canvas size
         const w = container.clientWidth || window.innerWidth;
         const h = container.clientHeight || window.innerHeight;
         uniforms.uCanvas.value.set(w, h);
@@ -1037,16 +461,14 @@
     
     animate();
     
-    // Handle resize
-    window.addEventListener('resize', () => {
+    window.addEventListener('resize', function() {
         const w = container.clientWidth || window.innerWidth;
         const h = container.clientHeight || window.innerHeight;
         renderer.setSize(w, h, false);
         uniforms.uCanvas.value.set(w, h);
     });
     
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener('beforeunload', function() {
         geometry.dispose();
         material.dispose();
         renderer.dispose();
@@ -1059,818 +481,335 @@
 </script>
 
 <!-- ============================================================
-     TENANT PORTAL
+     DASHBOARD CONTENT
      ============================================================ -->
-<div class="container">
+<div class="scroll-container">
+    <div class="dashboard-wrapper">
 
-    <!-- LOGIN CARD -->
-    <div class="card" id="loginCard">
-        
-        <!-- LANDING HEADER -->
-        <div class="landing-header">
-            <span class="logo">🏢</span>
-            <h1>Tenant Portal</h1>
-            <p class="subtitle">Secure Rent Payment System</p>
+        <!-- AUTH SCREEN -->
+        <div id="authScreen" class="panel">
+            <span class="logo-icon">🏢</span>
+            <h2>Owner/Admin Access</h2>
+            <p style="color: #94a3b8; font-size: 0.8em; margin-bottom: 10px;">Rent Collection Dashboard</p>
+            <input type="password" id="masterPin" placeholder="Enter dashboard access PIN">
+            <p class="access-note">This PIN is for the rent dashboard owner/admin to view and manage tenant records.</p>
+            <button onclick="checkMasterPin()">Access Dashboard</button>
+            <div id="loginError" class="login-error"></div>
+            <div id="loginLoading" style="display:none; text-align:center; margin-top:8px;">
+                <span class="loading-spinner"></span> Verifying...
+            </div>
         </div>
 
-        <!-- APP INFO - How to use the website (visible inside the app) -->
-        <div class="app-info">
-            <h3>📖 How It Works</h3>
-            
-            <div class="step">
-                <div class="step-number">1</div>
-                <div class="step-content">
-                    <div class="title">Select Your Unit</div>
-                    <div class="desc">Tap on your photo/unit from the grid below.</div>
-                </div>
+        <!-- DASHBOARD -->
+        <div id="dashboard" style="display:none;">
+            <div class="stats-bar">
+                <div class="stat-item"><div class="label">Total Owed</div><div class="stat-val" id="totalOwed">0</div></div>
+                <div class="stat-item"><div class="label">Total Paid</div><div class="stat-val" id="totalPaid" style="color: #10b981;">0</div></div>
             </div>
             
-            <div class="step">
-                <div class="step-number">2</div>
-                <div class="step-content">
-                    <div class="title">Enter Your PIN</div>
-                    <div class="desc">Use the <strong>4-6 digit PIN</strong> provided by your property manager.</div>
-                </div>
-            </div>
+            <button class="btn-danger" onclick="rolloverMonth()">ROLL TO NEW MONTH</button>
             
-            <div class="step">
-                <div class="step-number">3</div>
-                <div class="step-content">
-                    <div class="title">View Your Balance</div>
-                    <div class="desc">See your current rent balance, arrears, and payment history.</div>
-                </div>
-            </div>
+            <div class="grid" id="ledgerGrid"></div>
             
-            <div class="step">
-                <div class="step-number">4</div>
-                <div class="step-content">
-                    <div class="title">Make a Payment</div>
-                    <div class="desc">Enter your <strong>phone number</strong> and <strong>amount</strong>, then click <strong>"Pay Now"</strong>.</div>
-                </div>
+            <!-- Update Master PIN Section -->
+            <div class="panel update-pin-section">
+                <h4 style="font-size: 14px;">🔐 Update Admin PIN</h4>
+                <p style="font-size:0.8em; color:#94a3b8;">Change the master PIN used to access this dashboard.</p>
+                <input type="password" id="newMasterPin" placeholder="Enter new 4-6 digit PIN" maxlength="6" pattern="[0-9]*">
+                <button class="btn-success" onclick="updateMasterPin()">Update Admin PIN</button>
+                <div id="pinUpdateStatus" style="font-size:0.8em; margin-top:6px; color:#94a3b8;"></div>
             </div>
-            
-            <div class="step">
-                <div class="step-number">5</div>
-                <div class="step-content">
-                    <div class="title">Confirm on M-Pesa</div>
-                    <div class="desc">You'll receive a <strong>prompt on your phone</strong> to confirm the payment.</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="company-info">
-            <div class="name">Your Property Management Ltd</div>
-            <div class="detail">Registered in Kenya</div>
-        </div>
-
-        <div class="info-box">
-            Enter your PIN to view your account and make payments.
-        </div>
-
-        <div id="errorArea" class="error-msg" style="display:none;"></div>
-
-        <div id="pickStep" class="step active">
-            <label>Select Your Unit</label>
-            <div id="unitGrid" class="grid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    Loading units...
-                </div>
-            </div>
-            <p style="font-size:11px;color:#64748b;text-align:center;margin-top:6px;">Tap your photo to continue</p>
-        </div>
-
-        <div id="pinStep" class="step">
-            <div class="banner" id="selectedBanner">
-                <img id="selectedImg" src="" alt="">
-                <span id="selectedLabel">Select a unit</span>
-                <span class="change" onclick="backToPicker()">change</span>
-            </div>
-
-            <label for="userPin">Your PIN</label>
-            <input type="password" id="userPin" pattern="[0-9]*" inputmode="numeric" maxlength="6" placeholder="••••••" autofocus>
-            <p class="hint">Provided by your property manager</p>
-            <button class="btn-auth" onclick="verifyLogin()">Access Account</button>
-        </div>
-    </div>
-
-    <!-- DASHBOARD CARD -->
-    <div class="card" id="dashboardCard" style="display:none;">
-
-        <div class="header" style="margin-bottom:12px;">
-            <span class="logo" style="font-size:32px;">🏢</span>
-            <h1 style="font-size:18px;">Your Property Management Ltd</h1>
-            <p class="sub">Dashboard</p>
-            <span class="status-badge online" id="connectionStatus">🟢 Live</span>
-        </div>
-
-        <div class="company-info">
-            <div class="name">Welcome, <span id="displayTenantName">Tenant</span></div>
-            <div class="detail"><span id="displayUnit">Unit --</span></div>
-        </div>
-
-        <div class="balance" id="balanceBox">
-            <div class="label" id="billingLabel">Current Balance</div>
-            <div class="amount" id="displayBalance">Ksh 0</div>
-        </div>
-
-        <div class="statement">
-            <div class="statement-row"><span>Arrears Forward</span><span id="displayArrears">Ksh 0</span></div>
-            <div class="statement-row"><span>Current Charges</span><span id="displayRent">Ksh 0</span></div>
-            <div class="statement-row"><span>Payments Made</span><span id="displayPaid" class="value success">Ksh 0</span></div>
-        </div>
-
-        <!-- Payment History (Real-time) -->
-        <div style="margin-top:12px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <span style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Payment History</span>
-                <span id="paymentCount" style="font-size:10px;color:#64748b;">0 payments</span>
-            </div>
-            <div class="payment-history" id="paymentHistory">
-                <div class="empty">No payments recorded yet</div>
-            </div>
-        </div>
-
-        <!-- PAYMENT SECTION -->
-        <div style="margin-top:16px;">
-
-            <div class="summary-box">
-                <div class="title">📋 Payment</div>
-                <div class="row">
-                    <span>Recipient:</span>
-                    <span class="val">Your Property Management Ltd</span>
-                </div>
-                <div class="row">
-                    <span>Reference:</span>
-                    <span class="val" id="summaryHouse">--</span>
-                </div>
-                <div class="row">
-                    <span>Amount:</span>
-                    <span class="val amount" id="summaryAmount">KES 0.00</span>
-                </div>
-                <div class="divider"></div>
-                <div class="note">
-                    You will receive a prompt on your phone to confirm.
-                </div>
-            </div>
-
-            <label for="phoneInput">Phone Number</label>
-            <input type="tel" id="phoneInput" placeholder="0712345678" pattern="[0-9]*" inputmode="numeric">
-            <p class="hint">For payment confirmation</p>
-
-            <label for="amountInput">Amount (KES)</label>
-            <input type="number" id="amountInput" placeholder="Enter amount" min="1" oninput="updateSummary()">
-
-            <button class="btn-primary" id="actionBtn" onclick="showConfirm()">
-                Pay Now
-            </button>
-            <div class="status" id="actionStatus"></div>
-        </div>
-
-        <button class="btn-secondary" id="togglePinBtn" onclick="togglePinSection()">Change PIN</button>
-        <div id="pinEditSection" class="pin-edit hidden">
-            <div id="pinErrorArea" class="error-msg" style="display:none;text-align:left;"></div>
-            <label for="newPin">New PIN</label>
-            <input type="password" id="newPin" pattern="[0-9]*" inputmode="numeric" maxlength="6" placeholder="Enter new PIN">
-            <p class="hint">4-6 digit numeric code</p>
-            <button class="btn-primary" onclick="updatePin()" style="background:linear-gradient(135deg,#4f46e5,#3730a3);box-shadow:0 4px 20px rgba(79,70,229,0.25);">Save PIN</button>
-        </div>
-
-        <a href="#" class="logout" onclick="logout()">Sign Out</a>
-
-        <div class="footer">
-            &copy; 2024 Your Property Management Ltd
-        </div>
-    </div>
-
-</div>
-
-<!-- CONFIRMATION MODAL -->
-<div class="modal-overlay" id="confirmOverlay">
-    <div class="modal-box">
-        <span class="icon">📋</span>
-        <h2>Confirm Payment</h2>
-
-        <div class="details">
-            <div class="row">
-                <span>Recipient:</span>
-                <span class="val">Your Property Management Ltd</span>
-            </div>
-            <div class="row">
-                <span>Reference:</span>
-                <span class="val" id="confirmHouse">--</span>
-            </div>
-            <div class="row">
-                <span>Amount:</span>
-                <span class="val amount" id="confirmAmount">KES 0.00</span>
-            </div>
-            <div class="row">
-                <span>Phone:</span>
-                <span class="val" id="confirmPhone">--</span>
-            </div>
-        </div>
-
-        <div class="warning">
-            A confirmation request will be sent to your phone.
-            You must approve the request to complete the transaction.
-        </div>
-
-        <div class="btn-group">
-            <button class="btn-cancel" onclick="hideConfirm()">Cancel</button>
-            <button class="btn-confirm" onclick="processTransaction()">Confirm &amp; Send</button>
-        </div>
-    </div>
-</div>
-
-<!-- PAYMENT STATUS OVERLAY -->
-<div class="payment-overlay" id="paymentOverlay">
-    <div class="status-container">
-
-        <!-- Loading State -->
-        <div id="loadingState">
-            <div class="bouncy-balls">
-                <div class="bouncy-ball"></div>
-                <div class="bouncy-ball"></div>
-                <div class="bouncy-ball"></div>
-                <div class="bouncy-ball"></div>
-                <div class="bouncy-ball"></div>
-            </div>
-            <div class="status-title loading">Processing Payment</div>
-            <div class="status-sub">Please wait while we confirm your payment...</div>
-            <div class="timer-text" id="timerText">⏱️ Waiting for confirmation...</div>
-        </div>
-
-        <!-- Success State -->
-        <div id="successState" style="display:none;">
-            <span class="status-icon">✅</span>
-            <div class="status-title success">Payment Successful!</div>
-            <div class="status-amount" id="statusSuccessAmount">KES 0.00</div>
-            <div class="status-sub">Your payment has been received and processed successfully.</div>
-            <div class="status-sub" style="font-size:12px;color:#64748b;">A confirmation has been sent to your phone.</div>
-            <button class="btn-status btn-status-success" onclick="closePaymentOverlay()">Continue</button>
-        </div>
-
-        <!-- Error State -->
-        <div id="errorState" style="display:none;">
-            <span class="status-icon">❌</span>
-            <div class="status-title error">Payment Failed</div>
-            <div class="status-sub" id="statusErrorMsg">Something went wrong with your payment.</div>
-            <div class="status-sub" style="font-size:12px;color:#64748b;margin-top:4px;">Please check your phone and try again.</div>
-            <button class="btn-status btn-status-error" onclick="closePaymentOverlay()">Try Again</button>
-        </div>
-
-        <!-- Cancelled State -->
-        <div id="cancelledState" style="display:none;">
-            <span class="status-icon">⏹️</span>
-            <div class="status-title cancelled">Transaction Cancelled</div>
-            <div class="status-sub">You cancelled the payment request.</div>
-            <div class="status-sub" style="font-size:12px;color:#64748b;margin-top:4px;">No money has been deducted from your account.</div>
-            <button class="btn-status btn-status-cancelled" onclick="closePaymentOverlay()">Try Again</button>
-        </div>
-
-        <!-- Timeout State -->
-        <div id="timeoutState" style="display:none;">
-            <span class="status-icon">⏰</span>
-            <div class="status-title timeout">Taking Longer Than Usual</div>
-            <div class="status-sub">Your payment is taking longer than expected.</div>
-            <div class="status-sub" style="font-size:12px;color:#64748b;margin-top:4px;">Please check your phone for the M-Pesa prompt or try again.</div>
-            <button class="btn-status btn-status-timeout" onclick="closePaymentOverlay()">Try Again</button>
         </div>
 
     </div>
 </div>
 
-<!-- ============================================================
-     JAVASCRIPT
-     ============================================================ -->
 <script>
-// ============================================================
-// TENANT IMAGES
-// ============================================================
-const tenantImages = {
-    "baba tony": "https://uploads.onecompiler.io/447n5hakp/1783145590311/ma%20tony.jpg",
-    "spiroza": "https://uploads.onecompiler.io/447n5hakp/1783145701521/siproza.jpg",
-    "baba simo": "https://uploads.onecompiler.io/447n5hakp/1783145761365/ba%20simo.jpg",
-    "baba don": "https://uploads.onecompiler.io/447n5hakp/1783145852563/ba%20don.jpg",
-    "githinji": "https://uploads.onecompiler.io/447n5hakp/1783145878163/githinji.jpg",
-    "oscar": "https://uploads.onecompiler.io/447n5hakp/1783145808042/oscar.jpg"
-};
-const DEFAULT_AVATAR = "https://api.dicebear.com/7.x/identicon/svg?seed=house";
+    const firebaseConfig = {
+        apiKey: "AIzaSyDbkC9jWHaE7ztEqMer5XmB_nOEb35UtAI",
+        authDomain: "rent-collection-1b773.firebaseapp.com",
+        databaseURL: "https://rent-collection-1b773-default-rtdb.firebaseio.com",
+        projectId: "rent-collection-1b773",
+        storageBucket: "rent-collection-1b773.firebasestorage.app",
+        messagingSenderId: "1045895163870",
+        appId: "1:1045895163870:web:0e08ce6efef3b17fceb74f"
+    };
 
-// ============================================================
-// FIREBASE CONFIG
-// ============================================================
-const firebaseConfig = {
-    apiKey: "AIzaSyDbkC9jWHaE7ztEqMer5XmB_n0Eb35UtAI",
-    authDomain: "rent-collection-1b773.firebaseapp.com",
-    databaseURL: "https://rent-collection-1b773-default-rtdb.firebaseio.com",
-    projectId: "rent-collection-1b773",
-    storageBucket: "rent-collection-1b773.appspot.com",
-    messagingSenderId: "1045895163870",
-    appId: "1:1045895163870:web:0e08ce6efef3b17fceb74f"
-};
-
-// ============================================================
-// BACKEND URL
-// ============================================================
-function getServerUrl() {
-    const hostname = window.location.hostname;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return 'http://localhost:10000/api/stkpush';
-    }
-    return 'https://new-mpesa-backend-1.onrender.com/api/stkpush';
-}
-
-const PAYMENT_SERVER_URL = getServerUrl();
-
-// ============================================================
-// PAYMENT OVERLAY FUNCTIONS
-// ============================================================
-
-let timerInterval = null;
-let timeoutTimer = null;
-
-function showPaymentLoading() {
-    const overlay = document.getElementById('paymentOverlay');
-    document.getElementById('loadingState').style.display = 'block';
-    document.getElementById('successState').style.display = 'none';
-    document.getElementById('errorState').style.display = 'none';
-    document.getElementById('cancelledState').style.display = 'none';
-    document.getElementById('timeoutState').style.display = 'none';
-    overlay.classList.add('active');
-    
-    if (timeoutTimer) clearTimeout(timeoutTimer);
-    timeoutTimer = setTimeout(() => {
-        if (document.getElementById('loadingState').style.display !== 'none') {
-            showPaymentTimeout();
-        }
-    }, 60000);
-}
-
-function showPaymentSuccess(amount) {
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('successState').style.display = 'block';
-    document.getElementById('statusSuccessAmount').textContent = 'KES ' + parseFloat(amount).toFixed(2);
-    if (timeoutTimer) clearTimeout(timeoutTimer);
-}
-
-function showPaymentError(message) {
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('errorState').style.display = 'block';
-    document.getElementById('statusErrorMsg').textContent = message || 'Something went wrong with your payment.';
-    if (timeoutTimer) clearTimeout(timeoutTimer);
-}
-
-function showPaymentCancelled() {
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('cancelledState').style.display = 'block';
-    if (timeoutTimer) clearTimeout(timeoutTimer);
-}
-
-function showPaymentTimeout() {
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('timeoutState').style.display = 'block';
-    if (timeoutTimer) clearTimeout(timeoutTimer);
-}
-
-function closePaymentOverlay() {
-    const overlay = document.getElementById('paymentOverlay');
-    overlay.classList.remove('active');
-    document.getElementById('loadingState').style.display = 'block';
-    document.getElementById('successState').style.display = 'none';
-    document.getElementById('errorState').style.display = 'none';
-    document.getElementById('cancelledState').style.display = 'none';
-    document.getElementById('timeoutState').style.display = 'none';
-    if (timeoutTimer) clearTimeout(timeoutTimer);
-}
-
-// ============================================================
-// MAIN APP
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-
-    if (typeof firebase === 'undefined') {
-        document.getElementById('unitGrid').innerHTML = `
-            <div style="grid-column:1/-1;text-align:center;color:#fb7185;padding:20px;font-size:13px;">
-                Unable to load data. Please check your connection.
-            </div>
-        `;
-        return;
-    }
-
-    try {
-        firebase.initializeApp(firebaseConfig);
-        console.log('✅ Firebase ready');
-    } catch (e) {
-        console.error('Firebase error:', e);
-        return;
-    }
-
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let tenantData = {};
-    let configData = {};
-    let activeUnit = null;
-    let selectedUnit = null;
-    let pendingTransaction = null;
-    
     // ============================================================
-    // REAL-TIME PAYMENT LISTENERS - AUTO-UPDATE
+    // MASTER PIN - STORED IN FIREBASE
     // ============================================================
-    let paymentListenerRef = null;
-    let tenantListenerRef = null;
-    let paymentProcessed = false;
+    const MASTER_PIN_PATH = 'system_config/admin_pin';
+    const DEFAULT_PIN = '126483';
 
-    function setupRealtimeListeners(unitId) {
-        if (paymentListenerRef) {
-            paymentListenerRef.off();
-            paymentListenerRef = null;
-        }
-        if (tenantListenerRef) {
-            tenantListenerRef.off();
-            tenantListenerRef = null;
-        }
-
-        tenantListenerRef = db.ref(`tenant_ledger/${unitId}`);
-        tenantListenerRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data && activeUnit === unitId) {
-                console.log('🔄 Tenant data updated in real-time:', data);
-                renderDashboard(unitId, data);
-            }
-        });
-
-        paymentListenerRef = db.ref(`tenant_ledger/${unitId}/payments`);
-        paymentListenerRef.on('child_added', (snapshot) => {
-            const payment = snapshot.val();
-            console.log('💰 New payment detected in real-time:', payment);
-            
-            paymentProcessed = true;
-            showPaymentSuccess(payment.amount);
-            
-            const balanceEl = document.getElementById('displayBalance');
-            balanceEl.classList.add('updating');
-            setTimeout(() => {
-                balanceEl.classList.remove('updating');
-            }, 1000);
-            
-            db.ref(`tenant_ledger/${unitId}`).once('value', (snap) => {
-                const data = snap.val();
-                if (data) {
-                    renderDashboard(unitId, data);
+    function getStoredMasterPin() {
+        return new Promise((resolve) => {
+            db.ref(MASTER_PIN_PATH).once('value', (snapshot) => {
+                const pin = snapshot.val();
+                if (pin) {
+                    resolve(pin);
+                } else {
+                    db.ref(MASTER_PIN_PATH).set(DEFAULT_PIN);
+                    resolve(DEFAULT_PIN);
                 }
+            }).catch(() => {
+                resolve(DEFAULT_PIN);
             });
         });
     }
 
     // ============================================================
-    // TENANT IMAGES HELPER
+    // LOGIN
     // ============================================================
-    function getUnitImage(id) {
-        const tenant = tenantData[id];
-        const name = tenant && tenant.name ? String(tenant.name).trim().toLowerCase() : "";
-        if (!name) return DEFAULT_AVATAR;
-        if (tenantImages[name]) return tenantImages[name];
-        for (const key in tenantImages) {
-            if (name.includes(key) || key.includes(name)) return tenantImages[key];
-        }
-        return DEFAULT_AVATAR;
-    }
-
-    function showError(id, msg) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        if (msg) { el.textContent = msg; el.style.display = 'block'; } 
-        else { el.style.display = 'none'; }
-    }
-
-    function setStatus(msg, type) {
-        const el = document.getElementById('actionStatus');
-        if (!el) return;
-        el.textContent = msg;
-        el.className = 'status' + (type ? ' ' + type : '');
-    }
-
-    window.updateSummary = function() {
-        const amount = document.getElementById('amountInput').value;
-        const unit = activeUnit || '--';
-        const tenant = tenantData[activeUnit];
-        const name = tenant && tenant.name ? tenant.name : '';
-        const displayAmount = amount ? `KES ${parseFloat(amount).toFixed(2)}` : 'KES 0.00';
-        const displayHouse = unit !== '--' ? `Unit ${unit}${name ? ' (' + name + ')' : ''}` : '--';
+    async function checkMasterPin() {
+        const enteredPin = document.getElementById('masterPin').value.trim();
+        const errorEl = document.getElementById('loginError');
+        const loadingEl = document.getElementById('loginLoading');
         
-        document.getElementById('summaryAmount').textContent = displayAmount;
-        document.getElementById('summaryHouse').textContent = displayHouse;
-        document.getElementById('confirmAmount').textContent = displayAmount;
-        document.getElementById('confirmHouse').textContent = displayHouse;
-    };
-
-    window.showConfirm = function() {
-        const phone = document.getElementById('phoneInput').value.trim();
-        const amount = document.getElementById('amountInput').value.trim();
-
-        if (!phone) {
-            setStatus('Please enter your phone number.', 'error');
-            return;
-        }
-        if (!amount || Number(amount) <= 0) {
-            setStatus('Please enter a valid amount.', 'error');
-            return;
-        }
-        if (!activeUnit) {
-            setStatus('Please log in again.', 'error');
-            return;
-        }
-
-        document.getElementById('confirmPhone').textContent = phone;
-        document.getElementById('confirmAmount').textContent = `KES ${parseFloat(amount).toFixed(2)}`;
-        pendingTransaction = { phone, amount };
-        document.getElementById('confirmOverlay').classList.add('active');
-    };
-
-    window.hideConfirm = function() {
-        document.getElementById('confirmOverlay').classList.remove('active');
-        pendingTransaction = null;
-    };
-
-    window.processTransaction = async function() {
-        if (!pendingTransaction) return;
-        const { phone, amount } = pendingTransaction;
-        const btn = document.getElementById('actionBtn');
+        errorEl.textContent = '';
+        loadingEl.style.display = 'block';
         
-        hideConfirm();
-        paymentProcessed = false;
-        showPaymentLoading();
-        btn.disabled = true;
-        btn.textContent = 'Processing...';
+        if (!enteredPin) {
+            errorEl.textContent = 'Please enter your PIN.';
+            loadingEl.style.display = 'none';
+            return;
+        }
 
         try {
-            console.log('📤 Sending to:', PAYMENT_SERVER_URL);
-            console.log('📤 Payload:', { phone, amount, houseId: activeUnit });
-
-            const response = await fetch(PAYMENT_SERVER_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    phone: phone,
-                    amount: amount,
-                    houseId: activeUnit,
-                    accountReference: `${configData.mpesaAccount || ''}${activeUnit}`
-                })
-            });
-
-            const data = await response.json();
-            console.log('📥 Response:', data);
-
-            if (response.ok && data.success) {
-                setStatus('✅ Request sent! Check your phone.', 'success');
-                document.getElementById('amountInput').value = '';
-                window.updateSummary();
+            const storedPin = await getStoredMasterPin();
+            loadingEl.style.display = 'none';
+            
+            if (enteredPin === storedPin) {
+                document.getElementById('authScreen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                loadData();
             } else {
-                const errorMsg = data.error || data.message || 'Unknown error';
-                if (errorMsg.toLowerCase().includes('cancel') || errorMsg.toLowerCase().includes('cancelled')) {
-                    showPaymentCancelled();
-                } else {
-                    showPaymentError(errorMsg);
-                }
-                setStatus('❌ ' + errorMsg, 'error');
-                btn.disabled = false;
-                btn.textContent = 'Pay Now';
+                errorEl.textContent = 'Invalid PIN. Please try again.';
+                document.getElementById('masterPin').value = '';
+                document.getElementById('masterPin').focus();
             }
         } catch (error) {
-            console.error('❌ Error:', error);
-            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                showPaymentError('Network error. Please check your internet connection.');
-            } else {
-                showPaymentError(error.message);
-            }
-            setStatus('❌ Could not connect. Please try again.', 'error');
-            btn.disabled = false;
-            btn.textContent = 'Pay Now';
+            loadingEl.style.display = 'none';
+            errorEl.textContent = 'Error verifying PIN. Please try again.';
+            console.error('Login error:', error);
         }
-    };
+    }
 
     // ============================================================
-    // FIREBASE DATA - LOADS FROM DATABASE
+    // UPDATE MASTER PIN
     // ============================================================
-    db.ref().on("value", function(snapshot) {
-        try {
-            const data = snapshot.val() || {};
-            tenantData = data.tenant_ledger || {};
-            configData = data.system_config || {};
-            
-            console.log('📥 Tenant Data Loaded:', Object.keys(tenantData).length, 'units');
-            
-            renderUnits();
-            if (activeUnit && tenantData[activeUnit]) {
-                renderDashboard(activeUnit, tenantData[activeUnit]);
-            }
-        } catch (e) {
-            console.error('Data error:', e);
-        }
-    }, function(error) {
-        console.error('Firebase error:', error);
-        document.getElementById('unitGrid').innerHTML = `
-            <div style="grid-column:1/-1;text-align:center;color:#94a3b8;padding:20px;font-size:13px;">
-                Unable to load data. Please refresh.
-            </div>
-        `;
-    });
-
-    function renderUnits() {
-        const grid = document.getElementById('unitGrid');
-        if (!grid) return;
-        grid.innerHTML = '';
+    async function updateMasterPin() {
+        const newPin = document.getElementById('newMasterPin').value.trim();
+        const statusEl = document.getElementById('pinUpdateStatus');
         
-        const ids = Object.keys(tenantData).sort();
-        
-        if (ids.length === 0) {
-            grid.innerHTML = `
-                <div style="grid-column:1/-1;text-align:center;color:#94a3b8;padding:20px;font-size:13px;">
-                    No units available.
-                </div>
-            `;
+        if (!newPin) {
+            statusEl.textContent = '⚠️ Please enter a new PIN.';
+            statusEl.style.color = '#ef4444';
             return;
         }
-        
-        ids.forEach(function(id) {
-            const tenant = tenantData[id];
-            const name = tenant && tenant.name ? tenant.name.trim() : "Vacant";
-            const label = 'Unit ' + id + (name !== "Vacant" ? ' — ' + name : '');
-            const tile = document.createElement('div');
-            tile.className = 'tile' + (selectedUnit === id ? ' selected' : '');
-            tile.onclick = function() { selectUnit(id); };
-            tile.innerHTML = '<img src="' + getUnitImage(id) + '" alt="' + label + '" onerror="this.src=\'' + DEFAULT_AVATAR + '\'"><div class="label">' + label + '</div>';
-            grid.appendChild(tile);
+        if (!/^\d{4,6}$/.test(newPin)) {
+            statusEl.textContent = '⚠️ PIN must be 4-6 digits.';
+            statusEl.style.color = '#ef4444';
+            return;
+        }
+
+        try {
+            await db.ref(MASTER_PIN_PATH).set(newPin);
+            statusEl.textContent = '✅ Admin PIN updated successfully!';
+            statusEl.style.color = '#10b981';
+            document.getElementById('newMasterPin').value = '';
+        } catch (error) {
+            statusEl.textContent = '❌ Error updating PIN. Please try again.';
+            statusEl.style.color = '#ef4444';
+            console.error('Update PIN error:', error);
+        }
+    }
+
+    // ============================================================
+    // LOAD DATA
+    // ============================================================
+    function loadData() {
+        db.ref("tenant_ledger").on("value", (snap) => {
+            const ledger = snap.val() || {};
+            const grid = document.getElementById("ledgerGrid");
+            grid.innerHTML = "";
+            let gOwed = 0, gPaid = 0;
+
+            Object.keys(ledger).sort().forEach(id => {
+                const t = ledger[id];
+                const last = Number(t.lastMonth || 0);
+                const cur = Number(t.current || 0);
+
+                const paymentsObj = t.payments || {};
+                const paymentEntries = Object.keys(paymentsObj).map(pid => ({ pid, ...paymentsObj[pid] }));
+                paymentEntries.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+                const totalPaid = paymentEntries.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+                const bal = (last + cur) - totalPaid;
+                gOwed += bal; gPaid += totalPaid;
+                const pin = t.pin !== undefined && t.pin !== null ? t.pin : "";
+                const phone = t.phone ? String(t.phone).trim() : "";
+
+                let paymentRowsHtml = '';
+                if (paymentEntries.length) {
+                    paymentRowsHtml = paymentEntries.map(p => `
+                        <div class="payment-row">
+                            <span class="date">${p.date || '--'}</span>
+                            <span class="amount">Ksh ${Number(p.amount || 0).toLocaleString()}</span>
+                            <span class="actions">
+                                <button class="delete-btn" onclick="deletePayment('${id}', '${p.pid}')" title="Delete this payment entry">✕</button>
+                            </span>
+                        </div>
+                    `).join("");
+                } else {
+                    paymentRowsHtml = `<div class="payment-row"><span class="no-payments">No payments logged yet</span></div>`;
+                }
+
+                const todayStr = new Date().toISOString().slice(0, 10);
+
+                let contactHtml;
+                if (phone) {
+                    const waNumber = phone.replace(/[^\d]/g, "");
+                    const waMessage = encodeURIComponent(`Hello ${t.name || 'there'}, this is regarding your rent for House ${id}. Current balance: Ksh ${bal.toLocaleString()}. Kindly confirm your payment status.`);
+                    contactHtml = `
+                        <div class="contact-row">
+                            <a class="call-btn" href="tel:${phone}">📞 Call</a>
+                            <a class="whatsapp-btn" href="https://wa.me/${waNumber}?text=${waMessage}" target="_blank" rel="noopener">💬 WhatsApp</a>
+                        </div>`;
+                } else {
+                    contactHtml = `<div class="contact-row"><span class="no-phone">No phone number on file</span></div>`;
+                }
+                
+                grid.innerHTML += `
+                    <div class="panel ${bal > 0 ? 'border-owing' : 'border-paid'}">
+                        ${t.imgUrl ? `<img src="${t.imgUrl}" class="profile-img">` : ''}
+                        <h3 style="font-size: 16px;">${t.name}</h3>
+                        <div style="font-size: 1.2em; font-weight:900;">Bal: ${bal}</div>
+                        <span class="label">Last Month Bal:</span><input type="number" value="${last}" onblur="update('${id}','lastMonth',this.value)">
+                        <span class="label">Current Rent:</span><input type="number" value="${cur}" onblur="update('${id}','current',this.value)">
+                        <span class="label">Login PIN:</span><input type="text" class="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" value="${pin}" onblur="updatePin('${id}',this.value)">
+                        <span class="label">Phone Number:</span><input type="tel" value="${phone}" placeholder="e.g. 2547XXXXXXXX" onblur="updatePhone('${id}',this.value)">
+
+                        <span class="label">Payment History (Total: Ksh ${totalPaid.toLocaleString()}):</span>
+                        <div class="payment-log">${paymentRowsHtml}</div>
+                        <div class="add-payment-row">
+                            <input type="date" id="pdate-${id}" value="${todayStr}">
+                            <input type="number" id="pamt-${id}" placeholder="Amount">
+                            <button class="btn-success" onclick="addPayment('${id}')">Add</button>
+                        </div>
+
+                        ${contactHtml}
+                        <button class="btn-secondary" onclick="override('${id}')">Manual Override</button>
+                    </div>`;
+            });
+            document.getElementById("totalOwed").innerText = gOwed;
+            document.getElementById("totalPaid").innerText = gPaid;
         });
     }
 
-    window.selectUnit = function(id) {
-        selectedUnit = id;
-        showError('errorArea', null);
-        const tenant = tenantData[id];
-        const name = tenant && tenant.name ? tenant.name.trim() : "Vacant";
-        const label = 'Unit ' + id + (name !== "Vacant" ? ' — ' + name : '');
-        document.getElementById('selectedImg').src = getUnitImage(id);
-        document.getElementById('selectedLabel').textContent = label;
-        document.getElementById('pickStep').classList.remove('active');
-        document.getElementById('pinStep').classList.add('active');
-        document.getElementById('userPin').value = '';
-        document.getElementById('userPin').focus();
-        renderUnits();
-    };
-
-    window.backToPicker = function() {
-        selectedUnit = null;
-        showError('errorArea', null);
-        document.getElementById('pinStep').classList.remove('active');
-        document.getElementById('pickStep').classList.add('active');
-        renderUnits();
-    };
-
-    window.verifyLogin = function() {
-        const unit = selectedUnit;
-        const pin = document.getElementById('userPin').value.trim();
-        showError('errorArea', null);
-        if (!unit) {
-            showError('errorArea', 'Please select your unit first.');
+    // ============================================================
+    // DELETE PAYMENT
+    // ============================================================
+    window.deletePayment = (tenantId, paymentId) => {
+        if (!confirm("Are you sure you want to delete this payment entry? This action cannot be undone.")) {
             return;
         }
-        if (!pin) {
-            showError('errorArea', 'Please enter your PIN.');
-            return;
-        }
-        const tenant = tenantData[unit];
-        if (tenant && String(tenant.pin).trim() === pin) {
-            activeUnit = unit;
-            document.getElementById('loginCard').style.display = 'none';
-            document.getElementById('dashboardCard').style.display = 'block';
-            
-            setupRealtimeListeners(unit);
-            
-            renderDashboard(unit, tenant);
-            window.updateSummary();
-        } else {
-            showError('errorArea', 'Invalid PIN. Please try again.');
-        }
-    };
-
-    function renderDashboard(id, tenant) {
-        if (!tenant) {
-            db.ref(`tenant_ledger/${id}`).once('value', (snap) => {
-                const data = snap.val();
-                if (data) renderDashboard(id, data);
-            });
-            return;
-        }
-        
-        const arrears = Number(tenant.lastMonth || 0);
-        const rent = Number(tenant.current || 0);
-        
-        const paymentsObj = tenant.payments || {};
-        const paymentEntries = Object.keys(paymentsObj).map(pid => ({ pid, ...paymentsObj[pid] }));
-        const totalPaid = paymentEntries.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-        
-        const total = (arrears + rent) - totalPaid;
-        
-        document.getElementById('displayUnit').textContent = 'Unit ' + id;
-        document.getElementById('displayTenantName').textContent = tenant.name || 'Resident';
-        document.getElementById('billingLabel').textContent = 'Statement - ' + (configData.monthName || 'Current Period');
-        
-        const balanceEl = document.getElementById('displayBalance');
-        balanceEl.textContent = 'Ksh ' + total.toLocaleString();
-        balanceEl.className = 'amount' + (total > 0 ? ' positive' : ' zero');
-        
-        document.getElementById('displayArrears').textContent = 'Ksh ' + arrears.toLocaleString();
-        document.getElementById('displayRent').textContent = 'Ksh ' + rent.toLocaleString();
-        document.getElementById('displayPaid').textContent = 'Ksh ' + totalPaid.toLocaleString();
-        
-        const historyEl = document.getElementById('paymentHistory');
-        const countEl = document.getElementById('paymentCount');
-        if (paymentEntries.length === 0) {
-            historyEl.innerHTML = '<div class="empty">No payments recorded yet</div>';
-            countEl.textContent = '0 payments';
-        } else {
-            paymentEntries.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-            historyEl.innerHTML = paymentEntries.map(p => `
-                <div class="entry">
-                    <span>${p.date || '--'}</span>
-                    <span class="amt">+Ksh ${Number(p.amount || 0).toLocaleString()}</span>
-                </div>
-            `).join('');
-            countEl.textContent = paymentEntries.length + ' payments';
-        }
-        
-        const amountField = document.getElementById('amountInput');
-        if (amountField && !amountField.dataset.userEdited) {
-            amountField.value = total > 0 ? total : '';
-            window.updateSummary();
-        }
-    }
-
-    window.togglePinSection = function() {
-        const section = document.getElementById('pinEditSection');
-        const btn = document.getElementById('togglePinBtn');
-        if (section.classList.contains('hidden')) {
-            section.classList.remove('hidden');
-            btn.textContent = 'Close';
-        } else {
-            section.classList.add('hidden');
-            btn.textContent = 'Change PIN';
-            showError('pinErrorArea', null);
-            document.getElementById('newPin').value = '';
-        }
-    };
-
-    window.updatePin = function() {
-        const newPin = document.getElementById('newPin').value.trim();
-        showError('pinErrorArea', null);
-        if (!/^\d{4,6}$/.test(newPin)) {
-            showError('pinErrorArea', 'PIN must be 4-6 digits.');
-            return;
-        }
-        if (!activeUnit) return;
-        db.ref('tenant_ledger/' + activeUnit + '/pin').set(newPin)
-            .then(function() {
-                alert('PIN updated successfully!');
-                window.togglePinSection();
+        db.ref(`tenant_ledger/${tenantId}/payments/${paymentId}`).remove()
+            .then(() => {
+                console.log(`✅ Payment ${paymentId} deleted for tenant ${tenantId}`);
             })
-            .catch(function() {
-                showError('pinErrorArea', 'Error updating PIN.');
+            .catch((err) => {
+                console.error("Error deleting payment:", err);
+                alert("Failed to delete payment. Please try again.");
             });
     };
 
-    window.logout = function() {
-        if (paymentListenerRef) {
-            paymentListenerRef.off();
-            paymentListenerRef = null;
-        }
-        if (tenantListenerRef) {
-            tenantListenerRef.off();
-            tenantListenerRef = null;
-        }
-        
-        closePaymentOverlay();
-        
-        activeUnit = null;
-        selectedUnit = null;
-        document.getElementById('userPin').value = '';
-        document.getElementById('newPin').value = '';
-        document.getElementById('phoneInput').value = '';
-        document.getElementById('amountInput').value = '';
-        document.getElementById('pinEditSection').classList.add('hidden');
-        document.getElementById('togglePinBtn').textContent = 'Change PIN';
-        document.getElementById('dashboardCard').style.display = 'none';
-        document.getElementById('loginCard').style.display = 'block';
-        document.getElementById('pinStep').classList.remove('active');
-        document.getElementById('pickStep').classList.add('active');
-        showError('errorArea', null);
-        setStatus('', '');
-        renderUnits();
+    // ============================================================
+    // ROLLOVER MONTH
+    // ============================================================
+    window.rolloverMonth = () => {
+        if(!confirm("Are you sure? This will reset the month for everyone.")) return;
+        db.ref("tenant_ledger").once("value", (snap) => {
+            const updates = {};
+            snap.forEach(c => {
+                const t = c.val();
+                const paymentsObj = t.payments || {};
+                const totalPaid = Object.values(paymentsObj).reduce((sum, p) => sum + Number(p.amount || 0), 0);
+                const newLast = (Number(t.lastMonth || 0) + Number(t.current || 0)) - totalPaid;
+                updates[`${c.key}/lastMonth`] = newLast;
+                updates[`${c.key}/current`] = 3000;
+                updates[`${c.key}/payments`] = null;
+            });
+            db.ref("tenant_ledger").update(updates);
+        });
     };
 
-    renderUnits();
-});
+    // ============================================================
+    // UPDATE FUNCTIONS
+    // ============================================================
+    window.update = (id, key, val) => db.ref(`tenant_ledger/${id}/${key}`).set(Number(val));
+
+    window.updatePin = (id, val) => {
+        const cleaned = String(val).trim();
+        if (!/^\d{4,6}$/.test(cleaned)) {
+            alert("PIN must be 4-6 digits. Change not saved.");
+            loadData();
+            return;
+        }
+        db.ref(`tenant_ledger/${id}/pin`).set(cleaned);
+    };
+
+    window.updatePhone = (id, val) => {
+        const cleaned = String(val).trim();
+        db.ref(`tenant_ledger/${id}/phone`).set(cleaned);
+    };
+
+    // ============================================================
+    // ADD PAYMENT
+    // ============================================================
+    window.addPayment = (id) => {
+        const dateVal = document.getElementById(`pdate-${id}`).value;
+        const amtVal = document.getElementById(`pamt-${id}`).value;
+        const amt = Number(amtVal);
+
+        if (!dateVal) { alert("Please pick a date."); return; }
+        if (!amtVal || isNaN(amt) || amt <= 0) { alert("Please enter a valid payment amount."); return; }
+
+        db.ref(`tenant_ledger/${id}/payments`).push({ date: dateVal, amount: amt })
+            .then(() => { document.getElementById(`pamt-${id}`).value = ""; })
+            .catch(() => alert("Could not save payment. Check your connection."));
+    };
+
+    // ============================================================
+    // MANUAL OVERRIDE
+    // ============================================================
+    window.override = (id) => {
+        if(prompt("Enter Override PIN:") === "4348") {
+            const newBal = prompt("Enter new Last Month Balance:");
+            db.ref(`tenant_ledger/${id}/lastMonth`).set(Number(newBal));
+            db.ref(`tenant_ledger/${id}/current`).set(0);
+            db.ref(`tenant_ledger/${id}/payments`).set(null);
+        } else alert("Wrong PIN");
+    };
+
+    // ============================================================
+    // ENTER KEY SUPPORT
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('masterPin').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkMasterPin();
+            }
+        });
+        
+        document.getElementById('newMasterPin').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                updateMasterPin();
+            }
+        });
+    });
 </script>
 </body>
 </html>
