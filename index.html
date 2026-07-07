@@ -71,6 +71,108 @@
             border: 1px solid rgba(255, 255, 255, 0.06);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
         }
+
+        /* ============================================================
+           LANDING PAGE HEADER
+           ============================================================ */
+        .landing-header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .landing-header .logo {
+            font-size: 64px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .landing-header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: #f8fafc;
+            background: linear-gradient(to right, #a5b4fc, #818cf8, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .landing-header .subtitle {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-top: 4px;
+            -webkit-text-fill-color: #94a3b8;
+        }
+
+        /* ============================================================
+           APP INFO SECTION
+           ============================================================ */
+        .app-info {
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .app-info h3 {
+            color: #a5b4fc;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .app-info .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .app-info .step:last-child {
+            border-bottom: none;
+        }
+
+        .app-info .step-number {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .app-info .step-content {
+            flex: 1;
+        }
+
+        .app-info .step-content .title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #e2e8f0;
+        }
+
+        .app-info .step-content .desc {
+            font-size: 13px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .app-info .step-content .desc strong {
+            color: #34d399;
+        }
+
         .header { text-align: center; margin-bottom: 24px; }
         .header .logo { font-size: 42px; margin-bottom: 4px; display: block; }
         .header h1 { font-size: 20px; font-weight: 700; color: #f8fafc; }
@@ -656,6 +758,9 @@
             .payment-overlay .status-container { padding: 32px 20px 28px; }
             .payment-overlay .status-icon { font-size: 48px; }
             .bouncy-ball { width: 14px; height: 14px; gap: 8px; }
+            .landing-header .logo { font-size: 48px; }
+            .landing-header h1 { font-size: 22px; }
+            .app-info { padding: 16px; }
         }
     </style>
 </head>
@@ -937,10 +1042,61 @@
 
     <!-- LOGIN CARD -->
     <div class="card" id="loginCard">
-        <div class="header">
+        
+        <!-- ============================================================
+             LANDING HEADER - SHOWS WHEN LINK IS OPENED
+             ============================================================ -->
+        <div class="landing-header">
             <span class="logo">🏢</span>
             <h1>Tenant Portal</h1>
-            <p class="sub">Secure Access</p>
+            <p class="subtitle">Secure Rent Payment System</p>
+        </div>
+
+        <!-- ============================================================
+             APP INFO - HOW TO USE THE WEBSITE
+             ============================================================ -->
+        <div class="app-info">
+            <h3>📖 How It Works</h3>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div class="title">Select Your Unit</div>
+                    <div class="desc">Tap on your photo/unit from the grid below.</div>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div class="title">Enter Your PIN</div>
+                    <div class="desc">Use the <strong>4-6 digit PIN</strong> provided by your property manager.</div>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div class="title">View Your Balance</div>
+                    <div class="desc">See your current rent balance, arrears, and payment history.</div>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <div class="title">Make a Payment</div>
+                    <div class="desc">Enter your <strong>phone number</strong> and <strong>amount</strong>, then click <strong>"Pay Now"</strong>.</div>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <div class="title">Confirm on M-Pesa</div>
+                    <div class="desc">You'll receive a <strong>prompt on your phone</strong> to confirm the payment.</div>
+                </div>
+            </div>
         </div>
 
         <div class="company-info">
