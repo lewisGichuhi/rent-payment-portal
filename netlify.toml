@@ -1,0 +1,8 @@
+[build]
+  command = ""  # No build command needed for static HTML
+  publish = "." # The root folder where index.html is
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
